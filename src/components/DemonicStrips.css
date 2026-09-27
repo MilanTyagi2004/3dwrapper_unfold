@@ -1,0 +1,405 @@
+.strips-section {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 45% 48%, #160408 0%, #0a0103 45%, #020001 100%);
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Subtle, soft atmospheric glow centered behind the product */
+.strips-ambient-glow {
+  position: absolute;
+  top: 48%;
+  left: 42%;
+  transform: translate(-50%, -50%);
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(255, 0, 60, 0.07) 0%, rgba(2, 132, 199, 0.03) 40%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Main full-screen content frame */
+.strips-content-frame {
+  height: 100vh;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 2rem 3.5rem;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+/* 
+  1. TOP BRANDING
+  Understated, premium, does not overpower the 3D hero
+*/
+.strips-top-brand {
+  text-align: center;
+  z-index: 3;
+}
+
+.brand-eyebrow {
+  display: block;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.35rem;
+}
+
+.brand-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.7rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  margin: 0 0 0.25rem 0;
+  color: #ffffff;
+}
+
+.title-accent {
+  color: #ff003c;
+  text-shadow: 0 0 30px rgba(255, 0, 60, 0.55);
+}
+
+.brand-tagline {
+  font-size: clamp(0.78rem, 1.0vw, 0.88rem);
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+/* 
+  2. MAIN CINEMATIC COMPOSITION
+  3D Packet on left/center + Editorial typography on right directly on background
+*/
+.strips-main-stage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  gap: 2rem;
+  z-index: 3;
+}
+
+/* 3D Packet Canvas Stage */
+.packet-canvas-stage {
+  flex: 1.35;
+  height: 100%;
+  min-height: 420px;
+  max-height: 640px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.packet-canvas-stage canvas {
+  width: 100% !important;
+  height: 100% !important;
+  outline: none;
+  cursor: grab;
+}
+
+.packet-canvas-stage canvas:active {
+  cursor: grabbing;
+}
+
+/* 
+  EDITORIAL STORY PANEL:
+  Completely stable container with smooth crossfading content blocks
+*/
+.editorial-story-panel {
+  flex: 1.15;
+  max-width: 560px;
+  position: relative;
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.4s ease;
+}
+
+.editorial-content-block {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(calc(-50% + 14px));
+  opacity: 0;
+  filter: blur(4px);
+  pointer-events: none;
+  will-change: opacity, transform, filter;
+  transition: opacity 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.editorial-content-block.is-active {
+  opacity: 1;
+  transform: translateY(-50%);
+  filter: blur(0);
+  pointer-events: auto;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.editorial-content-block.is-prev {
+  opacity: 0;
+  transform: translateY(calc(-50% - 14px));
+  filter: blur(4px);
+  pointer-events: none;
+  transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Fluid micro-stagger for silky Apple-grade editorial entrance */
+.editorial-content-block .editorial-eyebrow,
+.editorial-content-block .editorial-headline,
+.editorial-content-block .editorial-description,
+.editorial-content-block .editorial-meta-row {
+  transform: translateY(8px);
+  opacity: 0.85;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.editorial-content-block.is-active .editorial-eyebrow,
+.editorial-content-block.is-active .editorial-headline,
+.editorial-content-block.is-active .editorial-description,
+.editorial-content-block.is-active .editorial-meta-row {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.editorial-content-block.is-active .editorial-eyebrow {
+  transition-delay: 0.02s;
+}
+
+.editorial-content-block.is-active .editorial-headline {
+  transition-delay: 0.05s;
+}
+
+.editorial-content-block.is-active .editorial-description {
+  transition-delay: 0.09s;
+}
+
+.editorial-content-block.is-active .editorial-meta-row {
+  transition-delay: 0.12s;
+}
+
+/* Eyebrow / Stage indicator */
+.editorial-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #ff003c;
+  margin-bottom: 1.25rem;
+}
+
+.eyebrow-line {
+  width: 28px;
+  height: 2px;
+  background: #ff003c;
+  box-shadow: 0 0 10px #ff003c;
+}
+
+/* Large Headline */
+.editorial-headline {
+  font-size: clamp(2.8rem, 4.3vw, 4.3rem);
+  font-weight: 900;
+  line-height: 1.07;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 1.35rem 0;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+.headline-line {
+  display: block;
+}
+
+/* Description */
+.editorial-description {
+  font-size: clamp(1.08rem, 1.32vw, 1.28rem);
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.62;
+  margin: 0;
+  max-width: 480px;
+}
+
+/* Supporting Metadata Row */
+.editorial-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 2.1rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.editorial-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.meta-separator {
+  color: #ff003c;
+  font-size: 0.9rem;
+}
+
+
+
+/* 
+  RESPONSIVE ADAPTATIONS
+*/
+@media (max-width: 1024px) {
+  .strips-content-frame {
+    padding: 1.8rem 2rem 1.4rem;
+  }
+
+  .editorial-headline {
+    font-size: clamp(2rem, 3.2vw, 2.8rem);
+  }
+
+  .editorial-story-panel {
+    max-width: 380px;
+  }
+}
+
+@media (max-width: 840px) {
+  .strips-content-frame {
+    padding: 1.2rem 1.4rem 1rem;
+    justify-content: flex-start;
+    gap: 0.4rem;
+  }
+
+  .strips-top-brand {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .brand-eyebrow {
+    font-size: 0.65rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .brand-title {
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    margin: 0 0 0.2rem 0;
+  }
+
+  .brand-tagline {
+    font-size: 0.8rem;
+  }
+
+  .strips-main-stage {
+    flex-direction: column;
+    justify-content: flex-start; /* Eliminates space-between pushing items to screen edges */
+    align-items: center;
+    gap: 0; /* Seamless transition from canvas to text */
+    flex: 1;
+    min-height: 0;
+  }
+
+  .packet-canvas-stage {
+    flex: none;
+    width: 100%;
+    height: 38vh;
+    min-height: 230px;
+    max-height: 320px;
+    margin-bottom: 0.2rem;
+  }
+
+  .editorial-story-panel {
+    flex: 1;
+    max-width: 100%;
+    width: 100%;
+    min-height: 180px;
+    padding-left: 0;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Anchors text right below canvas */
+  }
+
+  .editorial-content-block {
+    position: absolute;
+    top: 0; /* Anchor directly to top of editorial panel instead of top: 50% */
+    left: 0;
+    right: 0;
+    transform: translateY(10px);
+  }
+
+  .editorial-content-block.is-active {
+    transform: translateY(0);
+  }
+
+  .editorial-content-block.is-prev {
+    transform: translateY(-10px);
+  }
+
+  .editorial-eyebrow {
+    margin-bottom: 0.3rem;
+  }
+
+  .editorial-headline {
+    font-size: clamp(1.5rem, 5.2vw, 2.1rem);
+    margin-bottom: 0.4rem;
+    line-height: 1.1;
+  }
+
+  .editorial-description {
+    font-size: 0.90rem;
+    max-width: 90%;
+    margin: 0 auto;
+    line-height: 1.45;
+  }
+
+  .editorial-meta-row {
+    justify-content: center;
+    margin-top: 0.75rem;
+    gap: 1rem;
+    font-size: 0.76rem;
+  }
+
+  .strips-footer-timeline {
+    max-width: 100%;
+  }
+}
+
+@media (max-height: 720px) and (max-width: 840px) {
+  .strips-content-frame {
+    padding: 0.8rem 1rem;
+  }
+
+  .packet-canvas-stage {
+    height: 32vh;
+    min-height: 200px;
+  }
+
+  .editorial-headline {
+    font-size: 1.45rem;
+  }
+}
