@@ -111,21 +111,21 @@ export function PouchModel({ animProps, animRef }) {
     });
   }, []);
 
-  // Oral Strip Material: Translucent electric cobalt blue matching reference photo
+  // Oral Strip Material: Lighter, crystalline translucent sky-blue oral strip
   const stripMaterial = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
-      color: '#0284c7',
-      roughness: 0.22,
-      metalness: 0.04,
-      transmission: 0.55,
-      thickness: 0.05,
-      ior: 1.42,
-      clearcoat: 0.75,
-      clearcoatRoughness: 0.18,
-      emissive: '#034078',
-      emissiveIntensity: 0.32,
+      color: '#38bdf8',
+      roughness: 0.16,
+      metalness: 0.02,
+      transmission: 0.78,
+      thickness: 0.08,
+      ior: 1.45,
+      clearcoat: 0.85,
+      clearcoatRoughness: 0.15,
+      emissive: '#0284c7',
+      emissiveIntensity: 0.18,
       transparent: true,
-      opacity: 1.0,
+      opacity: 0.86,
       side: THREE.DoubleSide
     });
   }, []);
@@ -137,11 +137,11 @@ export function PouchModel({ animProps, animRef }) {
 
   const particlePlateletMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
-      color: '#0284c7',
-      roughness: 0.25,
-      transmission: 0.50,
-      emissive: '#034078',
-      emissiveIntensity: 0.25,
+      color: '#38bdf8',
+      roughness: 0.20,
+      transmission: 0.75,
+      emissive: '#0284c7',
+      emissiveIntensity: 0.16,
       transparent: true,
       opacity: 0,
       side: THREE.DoubleSide
@@ -323,7 +323,7 @@ export function PouchModel({ animProps, animRef }) {
     // When packet is sealed (peel <= 0.01), strip is 100% hidden!
     // As foil peels open, strip becomes visible inside cavity and stays visible until dissolution.
     if (stripMeshRef.current && stripMaterial) {
-      stripMaterial.opacity = stripOpacity;
+      stripMaterial.opacity = stripOpacity * 0.86;
       stripMeshRef.current.scale.setScalar(stripScale);
       stripMeshRef.current.visible = (peel > 0.01 || packetOpacity < 0.98) && stripOpacity > 0.005;
     }
@@ -337,7 +337,7 @@ export function PouchModel({ animProps, animRef }) {
         instancedParticlesRef.current.visible = true;
         // Continuous sinusoidal bell-curve opacity envelope (zero sharp steps)
         const plateletFade = Math.sin(Math.min(Math.PI, dissolveT * Math.PI));
-        particlePlateletMat.opacity = Math.pow(plateletFade, 0.82) * 0.95;
+        particlePlateletMat.opacity = Math.pow(plateletFade, 0.82) * 0.82;
 
         for (let i = 0; i < TOTAL_PARTICLES; i++) {
           const data = particlesData[i];

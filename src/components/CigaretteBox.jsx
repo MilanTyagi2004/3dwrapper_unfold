@@ -229,9 +229,9 @@ export function CigaretteBox({ animRef }) {
   useFrame((state) => {
     const anim = animRef?.current || {};
     const boxOpen = anim.boxOpen ?? 0;
-    const boxScale = anim.boxScale ?? 0.82;
+    const boxScale = anim.boxScale ?? 0.76;
     const boxX = anim.boxX ?? 0;
-    const boxY = anim.boxY ?? 0.80;
+    const boxY = anim.boxY ?? 0.65;
     const boxZ = anim.boxZ ?? 0;
     const boxRotX = anim.boxRotX ?? 0.08;
     const boxRotY = anim.boxRotY ?? -0.20;

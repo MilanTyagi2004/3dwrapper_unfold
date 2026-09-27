@@ -13,11 +13,13 @@ function ResponsiveCamera() {
   useEffect(() => {
     const isMobile = size.width <= 840;
     if (isMobile) {
-      camera.position.set(0, 0.08, 6.3);
-      camera.lookAt(0, 0.08, 0);
+      camera.position.set(0, 0.06, 7.6);
+      camera.lookAt(0, 0.06, 0);
+      camera.fov = 40;
     } else {
-      camera.position.set(0.18, 0, 6.5);
-      camera.lookAt(0.18, 0, 0);
+      camera.position.set(0.14, 0.0, 7.8);
+      camera.lookAt(0.14, 0, 0);
+      camera.fov = 38;
     }
     camera.updateProjectionMatrix();
   }, [size.width, camera]);
@@ -66,21 +68,21 @@ const STAGES = [
 
 const INITIAL_ANIM = {
   boxOpen: 0,
-  boxScale: 0.82,
+  boxScale: 0.76,
   boxX: 0.0,
-  boxY: 0.80,
+  boxY: 0.65,
   boxZ: 0.0,
   boxRotX: 0.08,
   boxRotY: -0.20,
   boxRotZ: 0.0,
   boxOpacity: 1.0,
-  packetX: -0.04,
-  packetY: 0.05,
-  packetZ: 0.19,
+  packetX: -0.03,
+  packetY: -0.05,
+  packetZ: 0.18,
   packetRotX: 0.08,
   packetRotY: -0.20,
   packetRotZ: 0.0,
-  packetScale: 0.82,
+  packetScale: 0.76,
   packetOpacity: 1.0,
   packetCrumple: 0,
   peel: 0,
@@ -195,11 +197,12 @@ const DemonicStrips = () => {
     // 2.20s – 3.80s : STAGE 02 (DISPENSE) — HERO PACKET GLIDES OUT OF THE BOX
     // Front packet elevates up out of the collar, tilts forward, and floats to center stage!
     // =========================================================================
-    // 1. Pouch slides straight up out of the box
+    // 1. Pouch slides smoothly up and forward out of the collar notch
     tl.to(animObj, {
-      packetY: 2.05,
-      duration: 0.95,
-      ease: 'power2.inOut'
+      packetY: 0.65,
+      packetZ: 0.38,
+      duration: 0.85,
+      ease: 'power2.out'
     }, 2.1);
 
     // 2. Pouch rotates to face camera directly
@@ -207,27 +210,27 @@ const DemonicStrips = () => {
       packetX: 0.0,
       packetRotY: 0.0,
       packetRotX: -0.04,
-      duration: 0.85,
+      duration: 0.80,
       ease: 'sine.inOut'
-    }, 2.6);
+    }, 2.45);
 
-    // 3. Pouch glides into hero position & expands to hero scale
+    // 3. Pouch glides gracefully into hero center position & expands to full hero scale
     tl.to(animObj, {
       packetY: 0.0,
       packetZ: 0.0,
       packetScale: 1.0,
-      duration: 0.9,
-      ease: 'power2.out'
-    }, 2.85);
+      duration: 0.90,
+      ease: 'power2.inOut'
+    }, 2.65);
 
-    // 4. Cigarette box glides back into depth and fades away
+    // 4. Cigarette box glides back into atmospheric depth and fades away
     tl.to(animObj, {
       boxZ: -1.8,
-      boxY: 0.35,
+      boxY: 0.25,
       boxOpacity: 0.0,
       duration: 1.1,
       ease: 'sine.inOut'
-    }, 2.7);
+    }, 2.5);
 
     // =========================================================================
     // 3.80s – 5.20s : STAGE 03 (READY / PEEL) — DEEP TOP-HALF FOIL PEEL DOWN
@@ -369,7 +372,7 @@ const DemonicStrips = () => {
           {/* 3D Packet Canvas Stage */}
           <div className="packet-canvas-stage">
             <Canvas
-              camera={{ position: [0.22, 0, 6.3], fov: 35 }}
+              camera={{ position: [0.14, 0, 7.8], fov: 38 }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
               dpr={[1, 2]}
             >
