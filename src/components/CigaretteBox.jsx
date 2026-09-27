@@ -99,7 +99,7 @@ export function CigaretteBox({ animRef }) {
       clearcoat: 0.18,
       clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
   }, [lidTexture]);
@@ -113,7 +113,7 @@ export function CigaretteBox({ animRef }) {
       clearcoat: 0.18,
       clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
   }, [bodyTexture]);
@@ -127,7 +127,7 @@ export function CigaretteBox({ animRef }) {
       clearcoat: 0.18,
       clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
   }, [sideTexture]);
@@ -140,7 +140,7 @@ export function CigaretteBox({ animRef }) {
       clearcoat: 0.18,
       clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
   }, [backTexture]);
@@ -153,7 +153,7 @@ export function CigaretteBox({ animRef }) {
       clearcoat: 0.18,
       clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
-      transparent: true,
+      transparent: false,
       opacity: 1.0
     });
   }, []);
@@ -164,8 +164,8 @@ export function CigaretteBox({ animRef }) {
       color: 0xccd1dc,
       roughness: 0.28,
       metalness: 0.88,
-      side: THREE.BackSide,
-      transparent: true,
+      side: THREE.FrontSide, // Inward facing foil; backface-culled from outside so zero silver shows on exterior
+      transparent: false,
       opacity: 1.0
     });
   }, []);
@@ -257,11 +257,13 @@ export function CigaretteBox({ animRef }) {
       lidHingeRef.current.rotation.x = -boxOpen * 2.15;
     }
 
-    // 3. Opacity Control
+    // 3. Opacity & Transparency Control (only transparent when fading out to prevent any depth-sorting leaks)
+    const isFading = boxOpacity < 0.999;
     [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, collarMat].forEach((mat) => {
       if (mat) {
         mat.opacity = boxOpacity;
-        mat.depthWrite = boxOpacity > 0.95;
+        mat.transparent = isFading;
+        mat.depthWrite = !isFading;
       }
     });
   });
@@ -336,24 +338,24 @@ export function CigaretteBox({ animRef }) {
         <mesh
           geometry={bodySideGeom}
           material={interiorFoilMat}
-          position={[-BOX_W / 2 + 0.005, -BODY_H / 2, 0]}
+          position={[-BOX_W / 2 + 0.012, -BODY_H / 2, 0]}
           rotation={[0, Math.PI / 2, 0]}
         />
         <mesh
           geometry={bodySideGeom}
           material={interiorFoilMat}
-          position={[BOX_W / 2 - 0.005, -BODY_H / 2, 0]}
+          position={[BOX_W / 2 - 0.012, -BODY_H / 2, 0]}
           rotation={[0, -Math.PI / 2, 0]}
         />
         <mesh
           geometry={bodyBackGeom}
           material={interiorFoilMat}
-          position={[0, -BODY_H / 2, -BOX_D / 2 + 0.005]}
+          position={[0, -BODY_H / 2, -BOX_D / 2 + 0.012]}
         />
         <mesh
           geometry={bottomGeom}
           material={interiorFoilMat}
-          position={[0, -BODY_H + 0.005, 0]}
+          position={[0, -BODY_H + 0.012, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         />
 
@@ -433,7 +435,7 @@ export function CigaretteBox({ animRef }) {
           <mesh
             geometry={lidFrontGeom}
             material={interiorFoilMat}
-            position={[0, 0, BOX_D / 2 - 0.005]}
+            position={[0, 0, BOX_D / 2 - 0.012]}
             rotation={[0, Math.PI, 0]}
           />
 
@@ -448,7 +450,7 @@ export function CigaretteBox({ animRef }) {
           <mesh
             geometry={lidBackGeom}
             material={interiorFoilMat}
-            position={[0, 0, -BOX_D / 2 + 0.005]}
+            position={[0, 0, -BOX_D / 2 + 0.012]}
           />
 
           {/* Lid Left Side Panel */}
@@ -462,7 +464,7 @@ export function CigaretteBox({ animRef }) {
           <mesh
             geometry={lidSideGeom}
             material={interiorFoilMat}
-            position={[-BOX_W / 2 + 0.005, 0, 0]}
+            position={[-BOX_W / 2 + 0.012, 0, 0]}
             rotation={[0, Math.PI / 2, 0]}
           />
 
@@ -477,7 +479,7 @@ export function CigaretteBox({ animRef }) {
           <mesh
             geometry={lidSideGeom}
             material={interiorFoilMat}
-            position={[BOX_W / 2 - 0.005, 0, 0]}
+            position={[BOX_W / 2 - 0.012, 0, 0]}
             rotation={[0, -Math.PI / 2, 0]}
           />
 
@@ -492,7 +494,7 @@ export function CigaretteBox({ animRef }) {
           <mesh
             geometry={topGeom}
             material={interiorFoilMat}
-            position={[0, LID_H / 2 - 0.005, 0]}
+            position={[0, LID_H / 2 - 0.012, 0]}
             rotation={[Math.PI / 2, 0, 0]}
           />
         </group>
