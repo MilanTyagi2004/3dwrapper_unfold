@@ -108,25 +108,7 @@ const DemonicStrips = () => {
 
   // React state updated ONLY when active stage changes (5 times per 9.6s loop)
   const [stageIndex, setStageIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  const togglePlay = () => {
-    if (!timelineRef.current) return;
-    if (isPlaying) {
-      timelineRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      timelineRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const jumpToStage = (time) => {
-    if (!timelineRef.current) return;
-    timelineRef.current.seek(time);
-    timelineRef.current.pause();
-    setIsPlaying(false);
-  };
 
   useEffect(() => {
     // Shared continuous animation object driven by GSAP
@@ -457,45 +439,7 @@ const DemonicStrips = () => {
           </div>
         </div>
 
-        {/* 3. INTERACTIVE CINEMATIC TIMELINE CONTROLS */}
-        <footer className="strips-interactive-controls">
-          <button
-            type="button"
-            className="control-play-toggle"
-            onClick={togglePlay}
-            aria-label={isPlaying ? 'Pause animation' : 'Play animation'}
-          >
-            {isPlaying ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="5" y="4" width="4" height="16" rx="1" />
-                <rect x="15" y="4" width="4" height="16" rx="1" />
-              </svg>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 4l15 8-15 8V4z" />
-              </svg>
-            )}
-            <span>{isPlaying ? 'PAUSE' : 'PLAY'}</span>
-          </button>
 
-          <div className="control-stage-pills">
-            {STAGES.map((s, idx) => {
-              const isActive = idx === stageIndex;
-              const seekTimes = [0.0, 2.2, 3.9, 5.3, 6.8];
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={`stage-pill-button ${isActive ? 'is-active' : ''}`}
-                  onClick={() => jumpToStage(seekTimes[idx])}
-                >
-                  <span className="pill-dot"></span>
-                  <span className="pill-label">{s.eyebrow}</span>
-                </button>
-              );
-            })}
-          </div>
-        </footer>
       </div>
     </section>
   );
