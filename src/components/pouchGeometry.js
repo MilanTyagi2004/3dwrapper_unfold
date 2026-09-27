@@ -88,7 +88,7 @@ export function createInnerCavityGeometry(Nx = 32, Ny = 40) {
       const u = i / Nx;
       const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH;
       const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT;
-      const z = -0.012 - getCushionZ(u, v) * 0.25;
+      const z = -0.030 - getCushionZ(u, v) * 0.20;
 
       positions.push(x, y, z);
       uvs.push(u, v);
@@ -242,9 +242,10 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
     return;
   }
 
-  // Deep peel threshold: rolls down ~52% of the pouch to completely uncover the strip
-  const foldDist = peelProgress * 0.74;
-  const rollWidth = 0.20 + peelProgress * 0.08; // smooth cylindrical roll crest
+  // Full peel-off threshold: rolls down across 100% of the pouch height and slides completely off the bottom
+  // Reaches from top notch (v=1.0) all the way down past the strip and off the bottom crimp
+  const foldDist = peelProgress * 1.80;
+  const rollWidth = 0.22 + peelProgress * 0.06; // smooth cylindrical foil roll crest
 
   let pIndex = 0;
   for (let j = 0; j <= Ny; j++) {
@@ -263,13 +264,13 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
       if (peelProgress > 0.001) {
         // Organic peel wavefront: starts at top-left notch (u=0, v=1) and rolls down across the full width
         const dv = 1.0 - v;
-        const d = dv + 0.16 * u - 0.06 * Math.sin(u * Math.PI) + 0.04 * Math.sin(dv * 6.0) * (1.0 - u);
+        const d = dv + 0.12 * u - 0.04 * Math.sin(u * Math.PI) + 0.03 * Math.sin(dv * 5.0) * (1.0 - u);
 
         const delta = foldDist - d;
 
         if (delta > 0) {
           // Rolling direction: downward with subtle lateral outward expansion
-          const dirX = (u - 0.5) * 0.25;
+          const dirX = (u - 0.5) * 0.22;
           const dirY = -0.92;
 
           let travel = 0;
@@ -278,28 +279,28 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
           if (delta <= rollWidth) {
             // Inside the rolling crest: smooth quintic hermite curve for C2 continuity
             const tau = delta / rollWidth;
-            const sCurve = tau * tau * tau * (tau * (tau * 6.0 - 15.0) + 10.0);
+            const sCurve = tau * tau * (3.0 - 2.0 * tau);
             const angle = sCurve * Math.PI;
 
             travel = (rollWidth / Math.PI) * Math.sin(angle);
-            liftZ = (rollWidth / Math.PI) * (1.0 - Math.cos(angle)) * (1.3 + peelProgress * 0.6);
-            liftZ += 0.012 * Math.sin(sCurve * Math.PI) * Math.cos(u * 5.0);
+            liftZ = (rollWidth / Math.PI) * (1.0 - Math.cos(angle)) * (1.4 + peelProgress * 0.5);
+            liftZ += 0.012 * Math.sin(sCurve * Math.PI) * Math.cos(u * 4.0);
           } else {
             // Past the crest: folded and rolled downward over the pouch front
             const past = delta - rollWidth;
-            travel = past * (0.88 + 0.05 * Math.sin(u * 4.0));
-            liftZ = (2.0 * rollWidth / Math.PI) * (1.3 + peelProgress * 0.6) + 0.01;
+            travel = (rollWidth / Math.PI) + past * (0.85 + 0.04 * Math.sin(u * 4.0));
+            liftZ = (2.0 * rollWidth / Math.PI) * (1.4 + peelProgress * 0.5) + 0.02;
 
             // Natural free-edge curl at the top flap edge
             const topDist = dv;
             if (topDist < 0.25) {
               const curlFactor = (0.25 - topDist) / 0.25;
-              liftZ += curlFactor * curlFactor * 0.08 * (1.0 + 0.3 * Math.abs(u - 0.5));
+              liftZ += curlFactor * curlFactor * 0.09 * (1.0 + 0.3 * Math.abs(u - 0.5));
             }
           }
 
-          curX = baseX + dirX * travel * POUCH_WIDTH * 0.40;
-          curY = baseY + dirY * travel * POUCH_HEIGHT * 0.45;
+          curX = baseX + dirX * travel * POUCH_WIDTH * 0.30;
+          curY = baseY + dirY * travel * POUCH_HEIGHT * 0.85;
           curZ = baseZ + liftZ;
         }
       }

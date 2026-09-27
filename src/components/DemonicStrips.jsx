@@ -88,7 +88,7 @@ const INITIAL_ANIM = {
   peel: 0,
   stripX: 0.0,
   stripY: 0.45,
-  stripZ: -0.015,
+  stripZ: 0.008,
   stripRotX: 0,
   stripRotY: 0,
   stripRotZ: 0,
@@ -373,7 +373,7 @@ const DemonicStrips = () => {
           <div className="packet-canvas-stage">
             <Canvas
               camera={{ position: [0.14, 0, 7.8], fov: 38 }}
-              gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+              gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', localClippingEnabled: true }}
               dpr={[1, 2]}
             >
               <ResponsiveCamera />

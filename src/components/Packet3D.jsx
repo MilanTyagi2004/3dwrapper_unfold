@@ -126,9 +126,13 @@ export function PouchModel({ animProps, animRef }) {
       emissiveIntensity: 0.18,
       transparent: true,
       opacity: 0.86,
-      side: THREE.DoubleSide
+      side: THREE.DoubleSide,
+      clipShadows: true
     });
   }, []);
+
+  // Hardware clipping plane for progressive reveal strictly under peeling foil
+  const peelClipPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
 
   // Particle platelet geometry for dissolution fragments
   const particlePlateletGeom = useMemo(() => {
@@ -190,6 +194,7 @@ export function PouchModel({ animProps, animRef }) {
 
   // Refs
   const packetGroupRef = useRef();
+  const frontPeelGroupRef = useRef();
   const frontPeelMeshRef = useRef();
   const stripGroupRef = useRef();
   const stripMeshRef = useRef();
@@ -234,15 +239,26 @@ export function PouchModel({ animProps, animRef }) {
     }
 
     // Dynamic Opacity Fade and DepthWrite toggle for see-through transparent packet
+    // As the peel completes (saara utar jaye), the front peeling layer fades away cleanly as it drops off the bottom
+    const peelFade = Math.max(0, Math.min(1, 1.0 - Math.max(0, (peel - 0.70) / 0.30)));
+    const frontLayerOpacity = packetOpacity * peelFade;
+    const isFrontTransp = frontLayerOpacity < 0.99;
     const isTransp = packetOpacity < 0.99;
+
     if (frontMaterial) {
-      frontMaterial.opacity = packetOpacity;
-      frontMaterial.depthWrite = !isTransp;
+      frontMaterial.opacity = frontLayerOpacity;
+      frontMaterial.depthWrite = !isFrontTransp;
+      frontMaterial.transparent = isFrontTransp;
     }
     if (peelBacksideMaterial) {
-      peelBacksideMaterial.opacity = packetOpacity;
-      peelBacksideMaterial.depthWrite = !isTransp;
+      peelBacksideMaterial.opacity = frontLayerOpacity;
+      peelBacksideMaterial.depthWrite = !isFrontTransp;
+      peelBacksideMaterial.transparent = isFrontTransp;
     }
+    if (frontPeelGroupRef.current) {
+      frontPeelGroupRef.current.visible = frontLayerOpacity > 0.005;
+    }
+
     if (backMaterial) {
       backMaterial.opacity = packetOpacity;
       backMaterial.depthWrite = !isTransp;
@@ -288,11 +304,11 @@ export function PouchModel({ animProps, animRef }) {
     }
 
     // 4. Continuous Oral Strip Position & Orientation
-    // Inside packet (stripZ <= -0.01): rigidly follows packet cavity on hover
+    // Inside packet (stripZ <= 0.02): rigidly follows packet cavity on hover & rotation
     // Emerging forward to hero position (stripZ >= 0.05): smoothly detaches and stays in front
     if (stripGroupRef.current) {
       // Silky-smooth C2 continuous smoothstep detachment from packet cavity
-      const rawDetached = Math.max(0, Math.min(1, (stripZ - (-0.018)) / 0.22));
+      const rawDetached = Math.max(0, Math.min(1, (stripZ - 0.02) / 0.25));
       const isDetached = rawDetached * rawDetached * (3.0 - 2.0 * rawDetached);
 
       const cosY = Math.cos(pRotY);
@@ -312,20 +328,36 @@ export function PouchModel({ animProps, animRef }) {
 
       stripGroupRef.current.position.set(finalX, finalY, finalZ);
 
-      const sRotX = THREE.MathUtils.lerp(-mouseY + stripRotX, -mouseY * 0.35 + stripRotX, isDetached);
-      const sRotY = THREE.MathUtils.lerp(mouseX + stripRotY, mouseX * 0.35 + stripRotY, isDetached);
-      const sRotZ = stripRotZ;
+      // When attached to packet (isDetached = 0), strictly match packet orientation (pRotX, pRotY, pRotZ)
+      // so the strip remains perfectly flat against the cavity bed with zero mesh intersection
+      const sRotX = THREE.MathUtils.lerp(pRotX + stripRotX, -mouseY * 0.35 + stripRotX, isDetached);
+      const sRotY = THREE.MathUtils.lerp(pRotY + stripRotY, mouseX * 0.35 + stripRotY, isDetached);
+      const sRotZ = THREE.MathUtils.lerp(pRotZ + stripRotZ, stripRotZ, isDetached);
 
       stripGroupRef.current.rotation.set(sRotX, sRotY, sRotZ);
     }
 
     // 5. Solid Strip Mesh Smooth Crossfade, Scale & Strict Visibility
-    // When packet is sealed (peel <= 0.01), strip is 100% hidden!
-    // As foil peels open, strip becomes visible inside cavity and stays visible until dissolution.
+    // When sealed (peel <= 0.03), strip is 100% hidden so zero pixels show outside!
+    const isPeelingOrRevealed = peel > 0.03 || packetOpacity < 0.98;
+    const isStripVisible = isPeelingOrRevealed && stripOpacity > 0.005;
+
     if (stripMeshRef.current && stripMaterial) {
       stripMaterial.opacity = stripOpacity * 0.86;
       stripMeshRef.current.scale.setScalar(stripScale);
-      stripMeshRef.current.visible = (peel > 0.01 || packetOpacity < 0.98) && stripOpacity > 0.005;
+      stripMeshRef.current.visible = isStripVisible;
+
+      // Progressive reveal strictly matching the downward peeling wavefront
+      // The strip is only revealed where the foil has already peeled away
+      if (peel > 0.03 && peel < 0.72) {
+        // Strip spans local y: [-0.425, +1.325]
+        const norm = (peel - 0.03) / (0.72 - 0.03);
+        const clipY = 1.35 - norm * (1.35 - (-0.45));
+        peelClipPlane.constant = -clipY;
+        stripMaterial.clippingPlanes = [peelClipPlane];
+      } else {
+        stripMaterial.clippingPlanes = [];
+      }
     }
 
     // 6. Particle Dissolution (Smooth Bell-Curve Overlapping Breakup)
@@ -412,7 +444,7 @@ export function PouchModel({ animProps, animRef }) {
           Completely sealed at start.
           Peels open with continuous curved S-fold from top-left notch.
         */}
-        <group>
+        <group ref={frontPeelGroupRef}>
           {/* Front printed face */}
           <mesh
             ref={frontPeelMeshRef}
@@ -435,7 +467,7 @@ export function PouchModel({ animProps, animRef }) {
         Independent from packet group so packet drops while strip stays!
         ============================================================
       */}
-      <group ref={stripGroupRef} position={[0.0, 0.45, -0.015]}>
+      <group ref={stripGroupRef} position={[0.0, 0.45, 0.008]}>
         {/* Solid translucent blue elongated strip */}
         <mesh
           ref={stripMeshRef}
