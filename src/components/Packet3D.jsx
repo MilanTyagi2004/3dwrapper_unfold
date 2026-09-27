@@ -205,13 +205,16 @@ export function PouchModel({ animProps, animRef }) {
     const peel = anim.peel ?? 0;
     const packetCrumple = anim.packetCrumple ?? 0;
     const packetOpacity = anim.packetOpacity ?? 1.0;
+    const packetX = anim.packetX ?? 0;
     const packetY = anim.packetY ?? 0;
     const packetZ = anim.packetZ ?? 0;
     const packetRotX = anim.packetRotX ?? 0;
+    const packetRotY = anim.packetRotY ?? 0;
     const packetRotZ = anim.packetRotZ ?? 0;
-    const stripX = anim.stripX ?? -0.22;
-    const stripY = anim.stripY ?? 0.55;
-    const stripZ = anim.stripZ ?? -0.018;
+    const packetScale = anim.packetScale ?? 1.0;
+    const stripX = anim.stripX ?? 0.0;
+    const stripY = anim.stripY ?? 0.45;
+    const stripZ = anim.stripZ ?? -0.015;
     const stripRotX = anim.stripRotX ?? 0;
     const stripRotY = anim.stripRotY ?? 0;
     const stripRotZ = anim.stripRotZ ?? 0;
@@ -267,20 +270,17 @@ export function PouchModel({ animProps, animRef }) {
     // 3. Continuous Packet Group Transform & Volumetric Hand-Crush Scale
     // Positioned strictly behind the emerging strip
     const pRotX = -mouseY + packetRotX;
-    const pRotY = mouseX;
+    const pRotY = mouseX + packetRotY;
     const pRotZ = packetRotZ;
 
     if (packetGroupRef.current) {
-      packetGroupRef.current.position.y = packetY;
-      packetGroupRef.current.position.z = packetZ;
-      packetGroupRef.current.rotation.x = pRotX;
-      packetGroupRef.current.rotation.y = pRotY;
-      packetGroupRef.current.rotation.z = pRotZ;
+      packetGroupRef.current.position.set(packetX, packetY, packetZ);
+      packetGroupRef.current.rotation.set(pRotX, pRotY, pRotZ);
 
       // Volumetric 3D scale compression when hand-folded
-      const scaleX = 1.0 - packetCrumple * 0.35;
-      const scaleY = 1.0 - packetCrumple * 0.28;
-      const scaleZ = 1.0 + packetCrumple * 0.70;
+      const scaleX = (1.0 - packetCrumple * 0.35) * packetScale;
+      const scaleY = (1.0 - packetCrumple * 0.28) * packetScale;
+      const scaleZ = (1.0 + packetCrumple * 0.70) * packetScale;
       packetGroupRef.current.scale.set(scaleX, scaleY, scaleZ);
 
       // Hide packet when completely off-screen or faded out
@@ -306,9 +306,9 @@ export function PouchModel({ animProps, animRef }) {
       const yRot = stripY * cosX - zRot1 * sinX;
       const zRot = stripY * sinX + zRot1 * cosX;
 
-      const finalX = THREE.MathUtils.lerp(xRot, stripX + mouseX * 0.15, isDetached);
-      const finalY = THREE.MathUtils.lerp(yRot, stripY - mouseY * 0.15, isDetached);
-      const finalZ = THREE.MathUtils.lerp(zRot, stripZ, isDetached);
+      const finalX = THREE.MathUtils.lerp(packetX + xRot, stripX + mouseX * 0.15, isDetached);
+      const finalY = THREE.MathUtils.lerp(packetY + yRot, stripY - mouseY * 0.15, isDetached);
+      const finalZ = THREE.MathUtils.lerp(packetZ + zRot, stripZ, isDetached);
 
       stripGroupRef.current.position.set(finalX, finalY, finalZ);
 
