@@ -13,13 +13,13 @@ function ResponsiveCamera() {
   useEffect(() => {
     const isMobile = size.width <= 840;
     if (isMobile) {
-      camera.position.set(0, 0.06, 7.6);
+      camera.position.set(0, 0.06, 8.6);
       camera.lookAt(0, 0.06, 0);
-      camera.fov = 40;
+      camera.fov = 44;
     } else {
-      camera.position.set(0.14, 0.0, 7.8);
+      camera.position.set(0.14, 0.0, 8.6);
       camera.lookAt(0.14, 0, 0);
-      camera.fov = 38;
+      camera.fov = 43;
     }
     camera.updateProjectionMatrix();
   }, [size.width, camera]);
@@ -68,21 +68,21 @@ const STAGES = [
 
 const INITIAL_ANIM = {
   boxOpen: 0,
-  boxScale: 0.76,
+  boxScale: 0.70,
   boxX: 0.0,
-  boxY: 0.65,
+  boxY: -0.22,
   boxZ: 0.0,
-  boxRotX: 0.08,
-  boxRotY: -0.20,
+  boxRotX: 0.06,
+  boxRotY: -Math.PI * 0.14,   // ~-25°: barely angled, gentle settle-in sweep
   boxRotZ: 0.0,
-  boxOpacity: 1.0,
-  packetX: -0.03,
-  packetY: -0.05,
-  packetZ: 0.18,
+  boxOpacity: 0.0,             // materialise from darkness as it spins
+  packetX: -0.033,
+  packetY: -0.651,
+  packetZ: 0.106,
   packetRotX: 0.08,
   packetRotY: -0.20,
   packetRotZ: 0.0,
-  packetScale: 0.76,
+  packetScale: 0.75,
   packetOpacity: 1.0,
   packetCrumple: 0,
   peel: 0,
@@ -147,123 +147,164 @@ const DemonicStrips = () => {
     tl.set(animObj, { ...INITIAL_ANIM }, 0);
 
     // =========================================================================
-    // 0.00s – 1.00s : STAGE 01 (UNPACK) — PRISTINE CLOSED CIGARETTE BOX
-    // The closed flip-top box stands proudly in the spotlight ("FOR THE OBSESSED")
+    // 0.00s – 0.75s : STAGE 01 (UNPACK) — PRODUCT REVEAL SPIN
+    // Box materialises from darkness while sweeping ~120° into hero position.
+    // Always visible from frame 1 (side-corner panel) — no invisible t=0 pop.
     // =========================================================================
 
+    // Opacity: fast materialise from dark (done by 0.4s)
+    tl.to(animObj, {
+      boxOpacity: 1.0,
+      duration: 0.45,
+      ease: 'power2.out'
+    }, 0.0);
+
+    // Rotation: subtle 25° sweep — front face visible 100% of the time
+    tl.to(animObj, {
+      boxRotY: -0.20,
+      boxRotX: 0.08,
+      duration: 0.85,
+      ease: 'sine.out'
+    }, 0.0);
+
+    // Rise + scale: rises from slightly below as it spins
+    tl.to(animObj, {
+      boxY: 0.05,
+      boxScale: 0.75,
+      duration: 0.75,
+      ease: 'power2.out'
+    }, 0.0);
+
     // =========================================================================
-    // 1.00s – 2.20s : STAGE 01 (UNPACK) — FLIP-TOP LID OPENS & BOX TILTS
+    // 1.00s – 2.05s : STAGE 01 (UNPACK) — FLIP-TOP LID OPENS & BOX TILTS
     // The cigarette box lid flips open backwards (-123°), revealing 4 red packets inside!
     // =========================================================================
     tl.to(animObj, {
       boxOpen: 1.0,
-      duration: 1.2,
+      duration: 1.05,
       ease: 'back.out(1.2)'
     }, 1.0);
 
     tl.to(animObj, {
       boxRotY: -0.15,
       boxRotX: 0.12,
-      duration: 1.2,
+      duration: 1.05,
       ease: 'sine.inOut'
     }, 1.0);
 
     tl.to(animObj, {
       packetRotY: -0.15,
       packetRotX: 0.12,
-      duration: 1.2,
+      packetX: -0.025,
+      packetY: -0.655,
+      packetZ: 0.08,
+      duration: 1.05,
       ease: 'sine.inOut'
     }, 1.0);
 
     // =========================================================================
-    // 2.20s – 3.80s : STAGE 02 (DISPENSE) — HERO PACKET GLIDES OUT OF THE BOX
-    // Front packet elevates up out of the collar, tilts forward, and floats to center stage!
+    // 2.05s – 3.80s : STAGE 02 (DISPENSE) — HERO PACKET ELEVATES CLEANLY OUT OF BOX
+    // 1. Box stays 100% STATIONARY in place (NO downward drop while sliding!)
+    // 2. Hero packet slides straight UP out of the collar opening, clearing the box
+    // 3. ONLY AFTER the packet has completely exited the box (t >= 2.95s),
+    //    the packet floats into center stage and the box recedes & fades away
     // =========================================================================
-    // 1. Pouch slides smoothly up and forward out of the collar notch
+    // Step 1: Packet slides straight UP along the box throat, completely emerging
+    // Box remains 100% fixed at [0, 0.05, 0] with zero movement!
     tl.to(animObj, {
-      packetY: 0.65,
+      packetX: -0.025,
+      packetY: 1.86,
       packetZ: 0.38,
       duration: 0.85,
       ease: 'power2.out'
-    }, 2.1);
+    }, 2.05);
 
-    // 2. Pouch rotates to face camera directly
+    // Step 2: Only after packet is 100% clear of the box (t >= 2.95s),
+    // packet floats down to center stage [0, 0, 0], scales to 1.0, and faces camera
     tl.to(animObj, {
       packetX: 0.0,
-      packetRotY: 0.0,
-      packetRotX: -0.04,
-      duration: 0.80,
-      ease: 'sine.inOut'
-    }, 2.45);
-
-    // 3. Pouch glides gracefully into hero center position & expands to full hero scale
-    tl.to(animObj, {
       packetY: 0.0,
       packetZ: 0.0,
+      packetRotY: 0.0,
+      packetRotX: -0.04,
       packetScale: 1.0,
-      duration: 0.90,
+      duration: 0.85,
       ease: 'power2.inOut'
-    }, 2.65);
+    }, 2.95);
 
-    // 4. Cigarette box glides back into atmospheric depth and fades away
+    // Step 3: Concurrently at t >= 2.95s, box drops and recedes away into the background
     tl.to(animObj, {
-      boxZ: -1.8,
-      boxY: 0.25,
+      boxZ: -3.5,
+      boxY: -0.80,
       boxOpacity: 0.0,
-      duration: 1.1,
-      ease: 'sine.inOut'
-    }, 2.5);
+      duration: 0.85,
+      ease: 'sine.in'
+    }, 2.95);
 
     // =========================================================================
-    // 3.80s – 5.20s : STAGE 03 (READY / PEEL) — DEEP TOP-HALF FOIL PEEL DOWN
-    // The top flap rolls smoothly downward, unveiling the oral strip on its bed
+    // 3.80s – 5.35s : STAGE 03 (READY / PEEL) — TACTILE FOIL PEEL DOWN
+    // The top notch initiates the peel and strips smoothly down the full pouch,
+    // unveiling the inner cavity bed and the oral strip with authentic metallic foil physics
     // =========================================================================
     tl.to(animObj, {
       peel: 1.0,
-      duration: 1.35,
-      ease: 'sine.inOut'
+      duration: 1.55,
+      ease: 'power1.inOut'
     }, 3.8);
 
+    // Subtle tactile tension reaction on the packet during the physical peel pull
+    tl.to(animObj, {
+      packetRotX: -0.015,
+      duration: 0.75,
+      ease: 'sine.out'
+    }, 3.8);
+
+    tl.to(animObj, {
+      packetRotX: -0.04,
+      duration: 0.80,
+      ease: 'sine.inOut'
+    }, 4.55);
+
     // =========================================================================
-    // 5.20s – 6.60s : STAGE 04 (EMERGE) — STRIP GLIDES FORWARD & PACKET MELTS
+    // 5.35s – 6.60s : STAGE 04 (EMERGE) — STRIP GLIDES FORWARD & PACKET MELTS
     // Fully revealed strip floats gracefully forward into hero focus in front
     // =========================================================================
     tl.to(animObj, {
       packetOpacity: 0.0,
-      duration: 1.35,
+      duration: 1.25,
       ease: 'sine.inOut'
-    }, 5.2);
+    }, 5.35);
 
     tl.to(animObj, {
       packetZ: -0.16,
-      duration: 1.3,
+      duration: 1.20,
       ease: 'sine.out'
-    }, 5.2);
+    }, 5.35);
 
     // Strip glides forward into hero spotlight:
     tl.to(animObj, {
       stripZ: 0.44,
-      duration: 1.35,
+      duration: 1.25,
       ease: 'sine.inOut'
-    }, 5.2);
+    }, 5.35);
 
     tl.to(animObj, {
       stripY: 0.16,
-      duration: 1.35,
+      duration: 1.25,
       ease: 'sine.inOut'
-    }, 5.2);
+    }, 5.35);
 
     tl.to(animObj, {
       stripScale: 1.08,
-      duration: 1.35,
+      duration: 1.25,
       ease: 'sine.inOut'
-    }, 5.2);
+    }, 5.35);
 
     tl.to(animObj, {
       stripRotX: -0.05,
-      duration: 1.35,
+      duration: 1.25,
       ease: 'sine.inOut'
-    }, 5.2);
+    }, 5.35);
 
     // =========================================================================
     // 6.60s – 9.60s : STAGE 05 (DISSOLVE) — HOVER & CONTINUOUS DISSOLUTION
@@ -354,7 +395,7 @@ const DemonicStrips = () => {
           {/* 3D Packet Canvas Stage */}
           <div className="packet-canvas-stage">
             <Canvas
-              camera={{ position: [0.14, 0, 7.8], fov: 38 }}
+              camera={{ position: [0.14, 0, 8.6], fov: 43 }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', localClippingEnabled: true }}
               dpr={[1, 2]}
             >

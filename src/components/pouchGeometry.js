@@ -220,9 +220,14 @@ export function getPaperCrumpleDisplacement(u, v, crumple) {
 }
 
 /**
- * Option 1: Deep Top-Half Peel Down Deformation:
- * Begins at the top notch ("PEEL HERE") and smoothly rolls downward across the entire top 50% of the pouch,
- * completely unveiling the inner cavity bed and the oral strip with an organic cylindrical foil roll.
+ * Realistic 180-Degree Foil Peel Deformation:
+ * Implements physically authentic foil peel mechanics with a tight 180° cylindrical roll crest
+ * initiating at the top-left tear notch ("PEEL HERE") and rolling tightly downward across the pouch.
+ * - The unpeeled portion remains 100% firmly attached to the pouch.
+ * - The rolling crest curves tightly (R = 0.052), flipping the material upside down.
+ * - The peeled flap folds backwards 180°, displaying the metallic silver interior foil,
+ *   laying tight against the pouch without ballooning or floating into mid-air.
+ * - Progresses cleanly down past the bottom crimp for a 100% full peel-off.
  */
 export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
   if (!geom || !geom.userData.basePositions) return;
@@ -233,7 +238,7 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
   const Nx = geom.userData.Nx;
   const Ny = geom.userData.Ny;
 
-  if (peelProgress <= 0.001 && crumpleProgress <= 0.001) {
+  if (peelProgress <= 0.0005 && crumpleProgress <= 0.0005) {
     for (let i = 0; i < basePositions.length; i++) {
       posArray[i] = basePositions[i];
     }
@@ -242,10 +247,13 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
     return;
   }
 
-  // Full peel-off threshold: rolls down across 100% of the pouch height and slides completely off the bottom
-  // Reaches from top notch (v=1.0) all the way down past the strip and off the bottom crimp
-  const foldDist = peelProgress * 1.80;
-  const rollWidth = 0.22 + peelProgress * 0.06; // smooth cylindrical foil roll crest
+  // Peeling wavefront travels smoothly from top notch (y = +1.80) to past the bottom crimp (y = -1.90)
+  // Pouch spans y in [-1.75, +1.75]. Total travel span = 3.70 units.
+  const yCenter = 1.80 - peelProgress * 3.70;
+
+  // Crisp, authentic aluminum foil bend radius (physical hinge, NOT a tube)
+  const R = 0.085;
+  const Lbend = Math.PI * R; // ~0.267 units
 
   let pIndex = 0;
   for (let j = 0; j <= Ny; j++) {
@@ -261,47 +269,58 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
       let curY = baseY;
       let curZ = baseZ;
 
-      if (peelProgress > 0.001) {
-        // Organic peel wavefront: starts at top-left notch (u=0, v=1) and rolls down across the full width
-        const dv = 1.0 - v;
-        const d = dv + 0.12 * u - 0.04 * Math.sin(u * Math.PI) + 0.03 * Math.sin(dv * 5.0) * (1.0 - u);
+      if (peelProgress > 0.0005) {
+        // Natural diagonal slant: top-left notch initiates the peel first
+        const slant = 0.16 * (u - 0.5) - 0.02 * Math.sin(u * Math.PI);
+        const yCrease = yCenter + slant;
 
-        const delta = foldDist - d;
+        // Distance from vertex to current crease line along the pouch height
+        const d = baseY - yCrease;
 
-        if (delta > 0) {
-          // Rolling direction: downward with subtle lateral outward expansion
-          const dirX = (u - 0.5) * 0.22;
-          const dirY = -0.92;
+        if (d <= 0) {
+          // 1. Unpeeled: firmly attached to the pouch
+          curX = baseX;
+          curY = baseY;
+          curZ = baseZ;
+        } else {
+          // 2. Realistic Tactile Foil Peel (Length-Preserving 180° Fold)
+          let dy = 0;
+          let dz = 0;
 
-          let travel = 0;
-          let liftZ = 0;
-
-          if (delta <= rollWidth) {
-            // Inside the rolling crest: smooth quintic hermite curve for C2 continuity
-            const tau = delta / rollWidth;
-            const sCurve = tau * tau * (3.0 - 2.0 * tau);
-            const angle = sCurve * Math.PI;
-
-            travel = (rollWidth / Math.PI) * Math.sin(angle);
-            liftZ = (rollWidth / Math.PI) * (1.0 - Math.cos(angle)) * (1.4 + peelProgress * 0.5);
-            liftZ += 0.012 * Math.sin(sCurve * Math.PI) * Math.cos(u * 4.0);
+          if (d <= Lbend) {
+            // Inside the tight 180° smooth bend curve
+            const theta = (d / Lbend) * Math.PI; // 0 to PI
+            dy = R * Math.sin(theta);
+            dz = R * (1.0 - Math.cos(theta));
           } else {
-            // Past the crest: folded and rolled downward over the pouch front
-            const past = delta - rollWidth;
-            travel = (rollWidth / Math.PI) + past * (0.85 + 0.04 * Math.sin(u * 4.0));
-            liftZ = (2.0 * rollWidth / Math.PI) * (1.4 + peelProgress * 0.5) + 0.02;
-
-            // Natural free-edge curl at the top flap edge
-            const topDist = dv;
-            if (topDist < 0.25) {
-              const curlFactor = (0.25 - topDist) / 0.25;
-              liftZ += curlFactor * curlFactor * 0.09 * (1.0 + 0.3 * Math.abs(u - 0.5));
-            }
+            // Past the bend: the peeled foil flap folds downward in front of the pouch
+            const dRem = d - Lbend;
+            // Preserves sheet length while tilting gently forward away from pouch
+            const tiltCos = 0.95;
+            const tiltSin = 0.28;
+            dy = -dRem * tiltCos;
+            dz = 2.0 * R + dRem * tiltSin;
           }
 
-          curX = baseX + dirX * travel * POUCH_WIDTH * 0.30;
-          curY = baseY + dirY * travel * POUCH_HEIGHT * 0.85;
-          curZ = baseZ + liftZ;
+          // Subtle authentic metallic foil physics:
+          // Transverse cupping across width:
+          const cupZ = 0.018 * Math.sin(u * Math.PI) * Math.min(1.0, d / 0.35);
+          // Very gentle micro-wave:
+          const waveZ = 0.008 * Math.sin(d * 3.5) * Math.min(1.0, d);
+          // Subtle lateral contraction:
+          const pinchX = 0.012 * (u - 0.5) * Math.min(1.0, d / 0.5);
+
+          curX = baseX + pinchX;
+          curY = yCrease + dy;
+          curZ = baseZ + dz + cupZ + waveZ;
+
+          // As the peel reaches the bottom (peelProgress > 0.80),
+          // the fully detached flap smoothly drifts downward and forward
+          if (peelProgress > 0.80) {
+            const detach = peelProgress - 0.80;
+            curY -= detach * detach * 4.5;
+            curZ += detach * 0.35;
+          }
         }
       }
 

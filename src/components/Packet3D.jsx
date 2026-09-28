@@ -238,9 +238,11 @@ export function PouchModel({ animProps, animRef }) {
       updateBackAndCavityCrumple(innerCavityGeom, packetCrumple, true);
     }
 
-    // Dynamic Opacity Fade and DepthWrite toggle for see-through transparent packet
-    // As the peel completes (saara utar jaye), the front peeling layer fades away cleanly as it drops off the bottom
-    const peelFade = Math.max(0, Math.min(1, 1.0 - Math.max(0, (peel - 0.70) / 0.30)));
+    // Dynamic Opacity Fade and DepthWrite toggle:
+    // The peeling foil stays 100% solid and opaque throughout the entire peel down the packet.
+    // As it reaches the bottom (peel > 0.82), the fully detached flap glides away and smoothly fades out
+    // so by peel >= 0.95 it is 100% gone, leaving ZERO leftover lines or stuck artifacts at the bottom.
+    const peelFade = Math.max(0, Math.min(1, 1.0 - Math.max(0, (peel - 0.82) / 0.15)));
     const frontLayerOpacity = packetOpacity * peelFade;
     const isFrontTransp = frontLayerOpacity < 0.99;
     const isTransp = packetOpacity < 0.99;
@@ -347,15 +349,19 @@ export function PouchModel({ animProps, animRef }) {
       stripMeshRef.current.scale.setScalar(stripScale);
       stripMeshRef.current.visible = isStripVisible;
 
-      // Progressive reveal strictly matching the downward peeling wavefront
+      // Progressive reveal strictly matching the downward peeling wavefront (1.80 - peel * 3.70)
       // The strip is only revealed where the foil has already peeled away
-      if (peel > 0.03 && peel < 0.72) {
-        // Strip spans local y: [-0.425, +1.325]
-        const norm = (peel - 0.03) / (0.72 - 0.03);
-        const clipY = 1.35 - norm * (1.35 - (-0.45));
-        peelClipPlane.constant = -clipY;
+      const yCreaseCenter = 1.80 - peel * 3.70;
+      if (yCreaseCenter > 1.35) {
+        // Foil has not reached strip yet: strip is 100% concealed
+        peelClipPlane.constant = -1.40;
+        stripMaterial.clippingPlanes = [peelClipPlane];
+      } else if (yCreaseCenter >= -0.45) {
+        // Crease is rolling across the strip: clip everything below the crease
+        peelClipPlane.constant = -yCreaseCenter;
         stripMaterial.clippingPlanes = [peelClipPlane];
       } else {
+        // Crease has rolled past the bottom of the strip: strip is 100% revealed
         stripMaterial.clippingPlanes = [];
       }
     }

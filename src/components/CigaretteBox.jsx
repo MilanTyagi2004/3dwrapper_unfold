@@ -19,39 +19,13 @@ export const TOTAL_BOX_H = BODY_H + LID_H; // 4.62
 /**
  * Sealed Static Pouch Component (used for the 3 background packets inside the box)
  */
-function SealedPouch({ position, rotation, frontTexture, backTexture, opacity = 1.0 }) {
+function SealedPouch({ position, rotation, frontMat, backMat }) {
   const backGeom = useMemo(() => createBackPouchGeometry(24, 30), []);
   const frontGeom = useMemo(() => createFrontPeelGeometry(28, 36), []);
 
-  const frontMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
-      map: frontTexture,
-      roughness: 0.35,
-      metalness: 0.04,
-      clearcoat: 0.25,
-      clearcoatRoughness: 0.4,
-      side: THREE.FrontSide,
-      transparent: true,
-      opacity: opacity
-    });
-  }, [frontTexture, opacity]);
-
-  const backMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
-      map: backTexture,
-      roughness: 0.35,
-      metalness: 0.04,
-      clearcoat: 0.25,
-      clearcoatRoughness: 0.4,
-      side: THREE.FrontSide,
-      transparent: true,
-      opacity: opacity
-    });
-  }, [backTexture, opacity]);
-
   return (
     <group position={position} rotation={rotation} scale={0.96}>
-      <mesh geometry={frontGeom} material={frontMat} castShadow />
+      <mesh geometry={frontGeom} material={frontMat} castShadow receiveShadow />
       <mesh geometry={backGeom} material={backMat} receiveShadow />
     </group>
   );
@@ -182,22 +156,51 @@ export function CigaretteBox({ animRef }) {
     });
   }, []);
 
+  // Sealed background pouches material (crisp, solid, depthWrite: true so never transparent/black!)
+  const sealedFrontMat = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      map: pouchFront,
+      roughness: 0.35,
+      metalness: 0.04,
+      clearcoat: 0.25,
+      clearcoatRoughness: 0.4,
+      side: THREE.FrontSide,
+      transparent: false,
+      opacity: 1.0,
+      depthWrite: true
+    });
+  }, [pouchFront]);
+
+  const sealedBackMat = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      map: pouchBack,
+      roughness: 0.35,
+      metalness: 0.04,
+      clearcoat: 0.25,
+      clearcoatRoughness: 0.4,
+      side: THREE.FrontSide,
+      transparent: false,
+      opacity: 1.0,
+      depthWrite: true
+    });
+  }, [pouchBack]);
+
   // Inner Frame Front Thumb Cutout Shape (Iconic cigarette pack U-notch)
   const collarFrontGeom = useMemo(() => {
     const shape = new THREE.Shape();
     const w2 = (BOX_W - 0.02) / 2;
     const botY = -0.5;
-    const topY = 0.65;
-    const notchBottom = 0.22;
-    const notchWidth = 0.58;
+    const topY = 0.44;
+    const notchBottom = 0.14;
+    const notchWidth = 0.65;
 
     // Outer contour with U-cutout at top
     shape.moveTo(-w2, botY);
     shape.lineTo(-w2, topY);
-    shape.lineTo(-w2 * 0.75, topY);
-    shape.lineTo(-notchWidth, notchBottom + 0.05);
-    shape.quadraticCurveTo(0, notchBottom - 0.04, notchWidth, notchBottom + 0.05);
-    shape.lineTo(w2 * 0.75, topY);
+    shape.lineTo(-w2 * 0.72, topY);
+    shape.lineTo(-notchWidth, notchBottom + 0.04);
+    shape.quadraticCurveTo(0, notchBottom - 0.03, notchWidth, notchBottom + 0.04);
+    shape.lineTo(w2 * 0.72, topY);
     shape.lineTo(w2, topY);
     shape.lineTo(w2, botY);
     shape.closePath();
@@ -215,7 +218,7 @@ export function CigaretteBox({ animRef }) {
   const lidBackGeom = useMemo(() => new THREE.PlaneGeometry(BOX_W, LID_H), []);
   const lidSideGeom = useMemo(() => new THREE.PlaneGeometry(BOX_D, LID_H), []);
   const topGeom = useMemo(() => new THREE.PlaneGeometry(BOX_W, BOX_D), []);
-  const collarSideGeom = useMemo(() => new THREE.PlaneGeometry(BOX_D - 0.02, 1.15), []);
+  const collarSideGeom = useMemo(() => new THREE.PlaneGeometry(BOX_D - 0.02, 0.94), []);
 
   // Interior lining box geometries
   const bodyInteriorGeom = useMemo(() => new THREE.BoxGeometry(BOX_W - 0.03, BODY_H - 0.02, BOX_D - 0.03), []);
@@ -225,13 +228,15 @@ export function CigaretteBox({ animRef }) {
   const boxRootRef = useRef();
   const lidHingeRef = useRef();
   const mouseLerp = useRef({ x: 0, y: 0 });
+  // Smoothed idle oscillation refs (lerped so swing builds in gradually, never pops)
+  const swingLerp = useRef({ floatY: 0, swingZ: 0, tiltX: 0 });
 
   useFrame((state) => {
     const anim = animRef?.current || {};
     const boxOpen = anim.boxOpen ?? 0;
-    const boxScale = anim.boxScale ?? 0.76;
+    const boxScale = anim.boxScale ?? 0.75;
     const boxX = anim.boxX ?? 0;
-    const boxY = anim.boxY ?? 0.65;
+    const boxY = anim.boxY ?? 0.05;
     const boxZ = anim.boxZ ?? 0;
     const boxRotX = anim.boxRotX ?? 0.08;
     const boxRotY = anim.boxRotY ?? -0.20;
@@ -242,12 +247,24 @@ export function CigaretteBox({ animRef }) {
     mouseLerp.current.x = THREE.MathUtils.lerp(mouseLerp.current.x, state.pointer.x * 0.07, 0.06);
     mouseLerp.current.y = THREE.MathUtils.lerp(mouseLerp.current.y, state.pointer.y * 0.05, 0.06);
 
+    // Idle suspension: gentle float + pendulum swing while closed.
+    // Targets are sine-driven; actual values lerp toward targets at ~3%/frame
+    // so the swing builds in organically and never pops on loop restart.
+    const idleFactor = Math.max(0, 1.0 - boxOpen * 10);
+    const t = state.clock.elapsedTime;
+    const floatTarget = Math.sin(t * 0.80) * 0.036 * idleFactor;   // ~7.9s period, ±0.036 units
+    const swingTarget = Math.sin(t * 0.62 + 1.1) * 0.012 * idleFactor; // ~10.1s period, ±0.7°
+    const tiltTarget  = Math.sin(t * 0.48 + 2.4) * 0.005 * idleFactor; // ~13.1s period, ±0.3°
+    swingLerp.current.floatY = THREE.MathUtils.lerp(swingLerp.current.floatY, floatTarget, 0.014);
+    swingLerp.current.swingZ = THREE.MathUtils.lerp(swingLerp.current.swingZ, swingTarget, 0.014);
+    swingLerp.current.tiltX  = THREE.MathUtils.lerp(swingLerp.current.tiltX,  tiltTarget,  0.014);
+
     // 1. Root Cigarette Box Transform
     if (boxRootRef.current) {
-      boxRootRef.current.position.set(boxX, boxY, boxZ);
-      boxRootRef.current.rotation.x = boxRotX - mouseLerp.current.y;
+      boxRootRef.current.position.set(boxX, boxY + swingLerp.current.floatY, boxZ);
+      boxRootRef.current.rotation.x = boxRotX + swingLerp.current.tiltX - mouseLerp.current.y;
       boxRootRef.current.rotation.y = boxRotY + mouseLerp.current.x;
-      boxRootRef.current.rotation.z = boxRotZ;
+      boxRootRef.current.rotation.z = boxRotZ + swingLerp.current.swingZ;
       boxRootRef.current.scale.setScalar(boxScale);
       boxRootRef.current.visible = boxOpacity > 0.01;
     }
@@ -257,15 +274,30 @@ export function CigaretteBox({ animRef }) {
       lidHingeRef.current.rotation.x = -boxOpen * 2.15;
     }
 
-    // 3. Opacity & Transparency Control (only transparent when fading out to prevent any depth-sorting leaks)
+    // 3. Opacity & Transparency Control
     const isFading = boxOpacity < 0.999;
-    [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, collarMat].forEach((mat) => {
+
+    // All box panels follow global boxOpacity (entry fade-in, exit fade-out)
+    [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, sealedFrontMat, sealedBackMat].forEach((mat) => {
       if (mat) {
         mat.opacity = boxOpacity;
         mat.transparent = isFading;
         mat.depthWrite = !isFading;
       }
     });
+
+    // Collar: visible when lid is open, fades OUT as the packet slides up through it.
+    // packetExitProgress: 0 when packet is inside the box, ramps to 1 as it exits.
+    // This prevents the "growing black band" effect when the packet passes through the collar.
+    const packetY = anim.packetY ?? -0.651;
+    const packetExitProgress = Math.max(0, Math.min(1, (packetY - 0.05) / 0.65));
+    const collarOpenT = boxOpen * boxOpen * (3.0 - 2.0 * boxOpen); // smoothstep on lid open
+    const collarOpacity = collarOpenT * (1.0 - packetExitProgress) * boxOpacity;
+    if (collarMat) {
+      collarMat.opacity = collarOpacity;
+      collarMat.transparent = true;
+      collarMat.depthWrite = collarOpacity > 0.5;
+    }
   });
 
   return (
@@ -371,14 +403,14 @@ export function CigaretteBox({ animRef }) {
         <mesh
           geometry={collarSideGeom}
           material={collarMat}
-          position={[-BOX_W / 2 + 0.015, 0.075, 0]}
+          position={[-BOX_W / 2 + 0.015, -0.03, 0]}
           rotation={[0, Math.PI / 2, 0]}
         />
         {/* Collar Right Side Wing */}
         <mesh
           geometry={collarSideGeom}
           material={collarMat}
-          position={[BOX_W / 2 - 0.015, 0.075, 0]}
+          position={[BOX_W / 2 - 0.015, -0.03, 0]}
           rotation={[0, -Math.PI / 2, 0]}
         />
 
@@ -386,28 +418,30 @@ export function CigaretteBox({ animRef }) {
           ============================================================
           3 BACKGROUND PACKETS INSIDE THE BOX (Packets 1, 2, 3)
           Packets stay inside the pack when the hero packet slides out!
+          Aligned with resting height (-0.66) so the red DEMONIC pouch
+          fills the collar cutout when the hero packet emerges!
           ============================================================
         */}
         {/* Packet 1 (directly behind hero packet) */}
         <SealedPouch
-          position={[0, -0.92, 0.05]}
+          position={[0, -0.66, 0.08]}
           rotation={[0, 0, 0]}
-          frontTexture={pouchFront}
-          backTexture={pouchBack}
+          frontMat={sealedFrontMat}
+          backMat={sealedBackMat}
         />
         {/* Packet 2 (middle packet) */}
         <SealedPouch
-          position={[0, -0.92, -0.12]}
+          position={[0, -0.69, -0.08]}
           rotation={[0, 0, 0]}
-          frontTexture={pouchFront}
-          backTexture={pouchBack}
+          frontMat={sealedFrontMat}
+          backMat={sealedBackMat}
         />
         {/* Packet 3 (rear-most packet) */}
         <SealedPouch
-          position={[0, -0.92, -0.29]}
+          position={[0, -0.72, -0.24]}
           rotation={[0, 0, 0]}
-          frontTexture={pouchFront}
-          backTexture={pouchBack}
+          frontMat={sealedFrontMat}
+          backMat={sealedBackMat}
         />
       </group>
 
