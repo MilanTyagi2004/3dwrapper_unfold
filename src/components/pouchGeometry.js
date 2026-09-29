@@ -1,36 +1,197 @@
 import * as THREE from 'three';
 
-export const POUCH_WIDTH = 2.4;
-export const POUCH_HEIGHT = 3.5;
-export const POUCH_DEPTH = 0.13;
+// ─────────────────────────────────────────────────────────────────────────────
+// EXACT DEMONIC FUEL POUCH PROPORTIONS (Matching Real Photo on Right)
+// Dimensions: 2.46 width x 3.50 height (Aspect Ratio ~ 1 : 1.42)
+// Physical Features:
+// 1. Steep, distinct 3D shoulder at the seal line transitioning into puffed pillow
+// 2. Sculpted physical metallic foil crinkles matching the photo ridges
+// 3. Dual side tear notches (left & right) in the top seal band
+// 4. Top-edge center dip notch + 45° corner chamfers + rounded bottom corners
+// ─────────────────────────────────────────────────────────────────────────────
+export const POUCH_WIDTH = 2.46;
+export const POUCH_HEIGHT = 3.50;
+export const POUCH_DEPTH = 0.24;
+
+// Exact sealed border dimensions matching reference photo
+export const SEAL_TOP_H = 0.44;   // Top seal band containing "PEEL HERE" & tear notches (~12.5% height)
+export const SEAL_BOT_H = 0.20;   // Bottom seal band below text (~5.7% height)
+export const SEAL_SIDE_W = 0.16;  // Left & right seal margins (~6.5% width)
+// Arch height for inverted-cone top seal (UV units) — center rises ARCH_AMOUNT above side baseline
+export const ARCH_AMOUNT = 0.08;
 
 /**
- * Cushion depth calculation for realistic flexible packaging volume
+ * Sharp faceted foil crease function for physically authentic flexible packaging
  */
-export function getCushionZ(uNorm, vNorm) {
-  const mx = 0.08;
-  const myBot = 0.07;
-  const myTop = 0.07;
-
-  const tx = Math.max(0, Math.min(1, (uNorm - mx) / (1 - 2 * mx)));
-  const ty = Math.max(0, Math.min(1, (vNorm - myBot) / (1 - myBot - myTop)));
-
-  const sx = Math.sin(Math.PI * tx);
-  const sy = Math.sin(Math.PI * ty);
-  const cushion = Math.pow(sx * sy, 0.75);
-
-  let crimp = 0;
-  if (vNorm < myBot || vNorm > (1 - myTop)) {
-    crimp = Math.sin(vNorm * 220) * 0.005 * (1 - cushion);
-  }
-
-  return cushion * (POUCH_DEPTH * 0.5) + crimp;
+function sharpFoilCrease(phase) {
+  const s = Math.sin(phase);
+  return Math.sign(s) * Math.pow(Math.abs(s), 0.38);
 }
 
 /**
- * Back Pouch Mesh Geometry (mapped to pouch-back.png)
+ * Cushion depth calculation:
+ * - Outside the seal border: COMPLETELY FLAT PRESSED SEAL (z = 0.001)
+ * - Inside the seal border: Puffed pillow cushion with sharp 3D shoulder and real foil crinkles
  */
-export function createBackPouchGeometry(Nx = 36, Ny = 45) {
+export function getCushionZ(uNorm, vNorm) {
+  const mxL = SEAL_SIDE_W / POUCH_WIDTH;
+  const mxR = SEAL_SIDE_W / POUCH_WIDTH;
+  const myBot = SEAL_BOT_H / POUCH_HEIGHT;
+  const myTop = SEAL_TOP_H / POUCH_HEIGHT;
+
+  // INVERTED-CONE arch top boundary: center rises ARCH_AMOUNT UV units above side baseline
+  const archLift = ARCH_AMOUNT * Math.sin(Math.PI * uNorm); // 0 at edges, ARCH_AMOUNT at center
+  const topBoundaryV = Math.min(0.985, (1 - myTop) + archLift);
+
+  // OUTSIDE SEAL BORDER: 100% Flat pressed heat-seal
+  if (uNorm <= mxL || uNorm >= (1 - mxR) || vNorm <= myBot || vNorm >= topBoundaryV) {
+    return 0.001;
+  }
+
+  // INSIDE PILLOW: Flexible puffed foil body (ty uses arch-adjusted top boundary)
+  const tx = (uNorm - mxL) / (1 - mxL - mxR);
+  const ty = (vNorm - myBot) / (topBoundaryV - myBot);
+
+  // Sharp, distinct 3D shoulder within the first 2.8% of the pillow to form the visible 3D seal line
+  const distFromBorder = Math.min(tx, 1 - tx, ty, 1 - ty);
+  const shoulder = Math.min(1.0, distFromBorder / 0.028);
+  const smoothShoulder = Math.pow(Math.sin(shoulder * Math.PI * 0.5), 0.72);
+
+  // Heat-seal crease groove right at the clamp boundary
+  const creaseGroove = (1.0 - Math.min(1.0, distFromBorder / 0.022)) * -0.004;
+
+  const sx = Math.sin(Math.PI * tx);
+  const sy = Math.sin(Math.PI * ty);
+  const cushion = Math.pow(sx * sy, 0.38) * smoothShoulder;
+
+  // EXACT FACETED METALLIC FOIL CRINKLES (Matching the real photo):
+  // 1. Top-right cluster of radiating crinkles (above and to the right of the horned eye)
+  const foldTR1 = sharpFoilCrease((tx * 3.8 + ty * 3.4 - 3.1) * Math.PI) * 0.028;
+  const foldTR2 = sharpFoilCrease((tx * 3.2 + ty * 4.6 - 3.6) * Math.PI) * 0.022;
+  const foldTR3 = sharpFoilCrease((tx * 4.8 - ty * 2.2 - 1.2) * Math.PI) * 0.018;
+
+  // 2. Right side vertical/diagonal fold (catching highlight in photo)
+  const foldRight = sharpFoilCrease((tx * 5.0 - ty * 1.5 - 2.8) * Math.PI) * 0.022;
+
+  // 3. Left side vertical crease fold (running down the left of the eye)
+  const foldLeft = sharpFoilCrease((tx * 4.5 - ty * 1.8 - 0.5) * Math.PI) * 0.020;
+
+  // 4. Bottom-right diagonal crease (near DEMONIC FUEL)
+  const foldBR = sharpFoilCrease((tx * 3.6 - ty * 3.2 + 0.8) * Math.PI) * 0.018;
+
+  // 5. Corner tension diagonals radiating from the clamp corners
+  const diagTL = Math.sin((tx + ty) * Math.PI * 3.5) * 0.010 * Math.max(0, 1.0 - distFromBorder * 3.0);
+  const diagTR = Math.sin((1.0 - tx + ty) * Math.PI * 3.5) * 0.014 * Math.max(0, 1.0 - distFromBorder * 3.0);
+
+  // 6. Micro surface flex
+  const microFlex = (Math.sin(tx * 18.0 + ty * 14.0) * 0.0035 + Math.sin(tx * 28.0 - ty * 20.0) * 0.0025);
+
+  const totalWrinkle = (foldTR1 + foldTR2 + foldTR3 + foldRight + foldLeft + foldBR + diagTL + diagTR + microFlex) * cushion;
+
+  return cushion * (POUCH_DEPTH * 0.5) + totalWrinkle + creaseGroove;
+}
+
+/**
+ * Exact edge cutouts and notches matching the reference photo:
+ * 1. Top-edge center dip notch + subtle secondary dip
+ * 2. Left side tear notch (cut into top seal band)
+ * 3. Right side tear notch (cut into top seal band at same height)
+ * 4. 45° corner chamfers on top-left and top-right
+ * 5. Rounded bottom corners
+ */
+function getEdgeDisplacement(u, v) {
+  let dx = 0;
+  let dy = 0;
+
+  const yRel = (v - 0.5) * POUCH_HEIGHT;
+  const halfH = POUCH_HEIGHT / 2;
+
+  // 1. TOP-EDGE NOTCHES:
+  const distCenterU = Math.abs(u - 0.50) * POUCH_WIDTH;
+  if (v > 0.94 && distCenterU < 0.10) {
+    const notchT = Math.max(0, 1.0 - distCenterU / 0.10);
+    const dip = 0.032 * Math.pow(notchT, 1.5) * ((v - 0.94) / 0.06);
+    dy -= dip;
+  }
+  const distSecU = Math.abs(u - 0.65) * POUCH_WIDTH;
+  if (v > 0.96 && distSecU < 0.06) {
+    const notchT = Math.max(0, 1.0 - distSecU / 0.06);
+    dy -= 0.014 * notchT;
+  }
+
+  // 2. SIDE TEAR NOTCHES (Both Left and Right in the top seal band)
+  const notchY = halfH - SEAL_TOP_H * 0.48;
+  const distNotchY = Math.abs(yRel - notchY);
+
+  // Left tear-notch:
+  if (u < 0.065 && distNotchY < 0.07) {
+    const notchT = Math.max(0, 1.0 - distNotchY / 0.07);
+    const uFactor = (0.065 - u) / 0.065;
+    dx += 0.052 * Math.pow(notchT, 1.4) * uFactor;
+  }
+
+  // Right tear-notch:
+  if (u > 0.935 && distNotchY < 0.07) {
+    const notchT = Math.max(0, 1.0 - distNotchY / 0.07);
+    const uFactor = (u - 0.935) / 0.065;
+    dx -= 0.052 * Math.pow(notchT, 1.4) * uFactor;
+  }
+
+  // 3. TOP CORNER 45° CHAMFERS (Clipped corners)
+  const chamferSize = 0.072;
+  const distTL_X = u * POUCH_WIDTH;
+  const distTL_Y = (1.0 - v) * POUCH_HEIGHT;
+  if (distTL_X + distTL_Y < chamferSize) {
+    const diff = chamferSize - (distTL_X + distTL_Y);
+    dx += diff * 0.50;
+    dy -= diff * 0.50;
+  }
+  const distTR_X = (1.0 - u) * POUCH_WIDTH;
+  const distTR_Y = (1.0 - v) * POUCH_HEIGHT;
+  if (distTR_X + distTR_Y < chamferSize) {
+    const diff = chamferSize - (distTR_X + distTR_Y);
+    dx -= diff * 0.50;
+    dy -= diff * 0.50;
+  }
+
+  // 4. BOTTOM CORNERS (Softened / smoothly rounded)
+  const r = 0.050;
+  const cu = Math.min(u, 1 - u);
+  const cv = v;
+  if (cu < r && cv < r) {
+    const du = (r - cu) / r;
+    const dv = (r - cv) / r;
+    const dist = Math.sqrt(du * du + dv * dv);
+    if (dist > 0.01) {
+      const pinch = Math.min(0.018, dist * 0.014);
+      dx += (u < 0.5 ? pinch : -pinch);
+      dy += pinch;
+    }
+  }
+
+  // 5. Subtle micro-edge waviness
+  const edgeWaveX = Math.sin(v * 36.0) * 0.0012 + Math.cos(v * 18.0) * 0.0008;
+  const edgeWaveY = Math.sin(u * 30.0) * 0.0010 + Math.cos(u * 15.0) * 0.0006;
+  if (u < 0.04 || u > 0.96) dx += edgeWaveX;
+  if (v < 0.04 || v > 0.96) dy += edgeWaveY;
+
+  return { dx, dy };
+}
+
+/**
+ * Maps normalized mesh (u, v) to texture (uTex, vTex)
+ * Clamped to prevent sampling border edge pixels
+ */
+function getScaledUV(u, v) {
+  const uTex = Math.max(0.002, Math.min(0.998, u));
+  const vTex = Math.max(0.002, Math.min(0.998, v));
+  return [uTex, vTex];
+}
+
+/**
+ * Back Pouch Mesh Geometry
+ */
+export function createBackPouchGeometry(Nx = 48, Ny = 64) {
   const geom = new THREE.BufferGeometry();
   const positions = [];
   const uvs = [];
@@ -40,12 +201,14 @@ export function createBackPouchGeometry(Nx = 36, Ny = 45) {
     const v = j / Ny;
     for (let i = 0; i <= Nx; i++) {
       const u = i / Nx;
-      const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH;
-      const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT;
-      const z = -getCushionZ(u, v);
+      const { dx, dy } = getEdgeDisplacement(u, v);
+      const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH + dx;
+      const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT + dy;
+      const z = -Math.max(0.001, getCushionZ(u, v));
 
       positions.push(x, y, z);
-      uvs.push(1.0 - u, v);
+      const [uTex, vTex] = getScaledUV(1.0 - u, v);
+      uvs.push(uTex, vTex);
     }
   }
 
@@ -74,21 +237,28 @@ export function createBackPouchGeometry(Nx = 36, Ny = 45) {
 }
 
 /**
- * Inner Cavity Geometry (silver foil lining inside the pouch where strip sits)
+ * Inner Cavity Geometry
  */
-export function createInnerCavityGeometry(Nx = 32, Ny = 40) {
+export function createInnerCavityGeometry(Nx = 32, Ny = 42) {
   const geom = new THREE.BufferGeometry();
   const positions = [];
   const uvs = [];
   const indices = [];
 
+  const padX = SEAL_SIDE_W / POUCH_WIDTH;
+  const padYBot = SEAL_BOT_H / POUCH_HEIGHT;
+  const padYTop = SEAL_TOP_H / POUCH_HEIGHT;
+
   for (let j = 0; j <= Ny; j++) {
     const v = j / Ny;
+    const mappedV = padYBot + v * (1.0 - padYBot - padYTop);
     for (let i = 0; i <= Nx; i++) {
       const u = i / Nx;
-      const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH;
-      const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT;
-      const z = -0.030 - getCushionZ(u, v) * 0.20;
+      const mappedU = padX + u * (1.0 - 2 * padX);
+
+      const x = -POUCH_WIDTH / 2 + mappedU * POUCH_WIDTH;
+      const y = -POUCH_HEIGHT / 2 + mappedV * POUCH_HEIGHT;
+      const z = -0.010 - getCushionZ(mappedU, mappedV) * 0.12;
 
       positions.push(x, y, z);
       uvs.push(u, v);
@@ -120,10 +290,9 @@ export function createInnerCavityGeometry(Nx = 32, Ny = 40) {
 }
 
 /**
- * Front Peel Layer Geometry:
- * High resolution grid capable of organic S-curve corner peeling and backward fold.
+ * Front Peel Layer Geometry
  */
-export function createFrontPeelGeometry(Nx = 48, Ny = 64) {
+export function createFrontPeelGeometry(Nx = 60, Ny = 80) {
   const geom = new THREE.BufferGeometry();
   const positions = [];
   const uvs = [];
@@ -133,12 +302,14 @@ export function createFrontPeelGeometry(Nx = 48, Ny = 64) {
     const v = j / Ny;
     for (let i = 0; i <= Nx; i++) {
       const u = i / Nx;
-      const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH;
-      const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT;
-      const z = getCushionZ(u, v);
+      const { dx, dy } = getEdgeDisplacement(u, v);
+      const x = -POUCH_WIDTH / 2 + u * POUCH_WIDTH + dx;
+      const y = -POUCH_HEIGHT / 2 + v * POUCH_HEIGHT + dy;
+      const z = Math.max(0.001, getCushionZ(u, v));
 
       positions.push(x, y, z);
-      uvs.push(u, v);
+      const [uTex, vTex] = getScaledUV(u, v);
+      uvs.push(uTex, vTex);
     }
   }
 
@@ -154,8 +325,7 @@ export function createFrontPeelGeometry(Nx = 48, Ny = 64) {
     }
   }
 
-  const posAttr = new THREE.Float32BufferAttribute(positions, 3);
-  geom.setAttribute('position', posAttr);
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
   geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geom.setIndex(indices);
   geom.computeVertexNormals();
@@ -168,39 +338,25 @@ export function createFrontPeelGeometry(Nx = 48, Ny = 64) {
 }
 
 /**
- * Sharp faceted paper crease transfer function.
- * Flattens valleys and peaks while steepening slopes to create crisp origami paper crease ridges.
- */
-function sharpPaperCrease(phase) {
-  const s = Math.sin(phase);
-  return Math.sign(s) * Math.pow(Math.abs(s), 0.38);
-}
-
-/**
- * Calculates hand-crushed paper/foil fold displacement at normalized coordinates (u, v).
+ * Hand-crushed paper/foil fold displacement calculation
  */
 export function getPaperCrumpleDisplacement(u, v, crumple) {
   if (crumple <= 0.0001) {
     return { dx: 0, dy: 0, dz: 0 };
   }
 
-  // Non-linear buckling curve: paper initially flexes, then buckles sharply into faceted folds
   const c = Math.pow(crumple, 1.15);
-
   const uc = u - 0.5;
   const vc = v - 0.5;
 
-  // 1. Inward lateral & vertical compression (pinched towards center by hand)
   const pinchX = -uc * c * 0.38 * (1.0 + 0.25 * Math.sin(v * 12.0));
   const pinchY = -vc * c * 0.30 * (1.0 + 0.25 * Math.cos(u * 10.0));
 
-  // 2. Multi-frequency sharp origami & hand-fold faceted creases
-  const fold1 = sharpPaperCrease((u * 2.4 + v * 1.9) * Math.PI * 2.8);
-  const fold2 = sharpPaperCrease((u * 2.1 - v * 2.4) * Math.PI * 2.5);
-  const fold3 = sharpPaperCrease((v * 3.6 + 0.3) * Math.PI);
-  const centerVFold = sharpPaperCrease((1.0 - Math.abs(uc) * 2.0) * Math.PI * 1.4);
+  const fold1 = sharpFoilCrease((u * 2.4 + v * 1.9) * Math.PI * 2.8);
+  const fold2 = sharpFoilCrease((u * 2.1 - v * 2.4) * Math.PI * 2.5);
+  const fold3 = sharpFoilCrease((v * 3.6 + 0.3) * Math.PI);
+  const centerVFold = sharpFoilCrease((1.0 - Math.abs(uc) * 2.0) * Math.PI * 1.4);
 
-  // 3. Volumetric depth crinkling (sharp alternating ridges)
   const ridgeZ = (
     fold1 * 0.16 +
     fold2 * 0.13 +
@@ -208,7 +364,6 @@ export function getPaperCrumpleDisplacement(u, v, crumple) {
     centerVFold * 0.15
   ) * c;
 
-  // 4. Perimeter irregular micro-crinkles
   const distFromCenter = Math.sqrt(uc * uc + vc * vc) * 2.0;
   const edgeCrinkle = Math.sin(u * 22.0 + v * 28.0) * 0.035 * Math.min(1.0, distFromCenter) * c;
 
@@ -220,14 +375,7 @@ export function getPaperCrumpleDisplacement(u, v, crumple) {
 }
 
 /**
- * Realistic 180-Degree Foil Peel Deformation:
- * Implements physically authentic foil peel mechanics with a tight 180° cylindrical roll crest
- * initiating at the top-left tear notch ("PEEL HERE") and rolling tightly downward across the pouch.
- * - The unpeeled portion remains 100% firmly attached to the pouch.
- * - The rolling crest curves tightly (R = 0.052), flipping the material upside down.
- * - The peeled flap folds backwards 180°, displaying the metallic silver interior foil,
- *   laying tight against the pouch without ballooning or floating into mid-air.
- * - Progresses cleanly down past the bottom crimp for a 100% full peel-off.
+ * Realistic Foil Peel Deformation
  */
 export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
   if (!geom || !geom.userData.basePositions) return;
@@ -247,13 +395,13 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
     return;
   }
 
-  // Peeling wavefront travels smoothly from top notch (y = +1.80) to past the bottom crimp (y = -1.90)
-  // Pouch spans y in [-1.75, +1.75]. Total travel span = 3.70 units.
-  const yCenter = 1.80 - peelProgress * 3.70;
+  const yStart = POUCH_HEIGHT * 0.52;
+  const yEnd = -POUCH_HEIGHT * 0.55;
+  const yCenter = yStart - peelProgress * (yStart - yEnd);
 
-  // Crisp, authentic aluminum foil bend radius (physical hinge, NOT a tube)
-  const R = 0.085;
-  const Lbend = Math.PI * R; // ~0.267 units
+  // Wider curl = real thin-foil behavior (was 0.075 — too tight, plastic-like)
+  const R = 0.090;
+  const Lbend = Math.PI * R;
 
   let pIndex = 0;
   for (let j = 0; j <= Ny; j++) {
@@ -270,61 +418,59 @@ export function updatePeelDeformation(geom, peelProgress, crumpleProgress = 0) {
       let curZ = baseZ;
 
       if (peelProgress > 0.0005) {
-        // Natural diagonal slant: top-left notch initiates the peel first
-        const slant = 0.16 * (u - 0.5) - 0.02 * Math.sin(u * Math.PI);
+        // Corner-start slant: foil tears from one notch, not perfectly horizontal
+        const slant = 0.18 * (u - 0.5) - 0.025 * Math.sin(u * Math.PI);
         const yCrease = yCenter + slant;
-
-        // Distance from vertex to current crease line along the pouch height
         const d = baseY - yCrease;
 
         if (d <= 0) {
-          // 1. Unpeeled: firmly attached to the pouch
           curX = baseX;
           curY = baseY;
           curZ = baseZ;
         } else {
-          // 2. Realistic Tactile Foil Peel (Length-Preserving 180° Fold)
           let dy = 0;
           let dz = 0;
 
           if (d <= Lbend) {
-            // Inside the tight 180° smooth bend curve
-            const theta = (d / Lbend) * Math.PI; // 0 to PI
+            // Smooth arc curl — wider radius = gentler, more foil-like bend
+            const theta = (d / Lbend) * Math.PI;
             dy = R * Math.sin(theta);
             dz = R * (1.0 - Math.cos(theta));
           } else {
-            // Past the bend: the peeled foil flap folds downward in front of the pouch
+            // Flat peeled flap: lies back almost horizontally (natural foil drape)
             const dRem = d - Lbend;
-            // Preserves sheet length while tilting gently forward away from pouch
-            const tiltCos = 0.95;
-            const tiltSin = 0.28;
-            dy = -dRem * tiltCos;
-            dz = 2.0 * R + dRem * tiltSin;
+            dy = -dRem * 0.98;   // nearly flat back-flap (was 0.94 — too steep)
+            dz = 2.0 * R + dRem * 0.12; // minimal forward lean (was 0.26 — too angled)
           }
 
-          // Subtle authentic metallic foil physics:
-          // Transverse cupping across width:
-          const cupZ = 0.018 * Math.sin(u * Math.PI) * Math.min(1.0, d / 0.35);
-          // Very gentle micro-wave:
-          const waveZ = 0.008 * Math.sin(d * 3.5) * Math.min(1.0, d);
-          // Subtle lateral contraction:
-          const pinchX = 0.012 * (u - 0.5) * Math.min(1.0, d / 0.5);
+          // Width cupping: foil cups across its width as tension releases (Poisson effect)
+          const cupZ = 0.026 * Math.sin(u * Math.PI) * Math.min(1.0, d / 0.30);
+
+          // Micro-flutter: layered sine waves simulate thin foil vibration/drape
+          const waveZ = (
+            0.008 * Math.sin(d * 4.0) +
+            0.004 * Math.sin(d * 9.3 + u * 2.1)
+          ) * Math.min(1.0, d);
+
+          // Width pinch: foil narrows slightly as it peels (Poisson's ratio in film)
+          const pinchX = 0.016 * (u - 0.5) * Math.min(1.0, d / 0.5);
 
           curX = baseX + pinchX;
           curY = yCrease + dy;
           curZ = baseZ + dz + cupZ + waveZ;
 
-          // As the peel reaches the bottom (peelProgress > 0.80),
-          // the fully detached flap smoothly drifts downward and forward
-          if (peelProgress > 0.80) {
-            const detach = peelProgress - 0.80;
-            curY -= detach * detach * 4.5;
-            curZ += detach * 0.35;
+          // Foil detach: flutters away gracefully at the end of peel
+          if (peelProgress > 0.82) {
+            const detach = peelProgress - 0.82;
+            // Smooth quadratic drop + slight backward drift
+            curY -= detach * detach * 2.5;
+            curZ += detach * 0.14;
+            // Slight lateral flutter as it falls
+            curX += detach * 0.06 * Math.sin(u * Math.PI * 2.0);
           }
         }
       }
 
-      // Hand-paper crumple displacement
       if (crumpleProgress > 0.001) {
         const { dx, dy, dz } = getPaperCrumpleDisplacement(u, v, crumpleProgress);
         curX += dx * POUCH_WIDTH * 0.65;
@@ -391,12 +537,9 @@ export function updateBackAndCavityCrumple(geom, crumpleProgress, isCavity = fal
 }
 
 /**
- * Oral Strip Geometry:
- * Thin, elongated rectangular oral dissolving film patch matching reference image.
- * Dimensions: width = 1.12, height = 1.75 (1.86x longer than previous).
- * Features subtle center vertical crease line, micro-wave surface flex, and thin solid depth.
+ * Oral Strip Geometry
  */
-export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height = 1.75) {
+export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.15, height = 1.68) {
   const geom = new THREE.BufferGeometry();
   const thickness = 0.004;
 
@@ -404,7 +547,6 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
   const uvs = [];
   const indices = [];
 
-  // Front face
   for (let j = 0; j <= Ny; j++) {
     const v = j / Ny;
     for (let i = 0; i <= Nx; i++) {
@@ -412,10 +554,8 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
       const x = -width / 2 + u * width;
       const y = -height / 2 + v * height;
 
-      // Subtle center vertical crease line matching reference photo
       const centerDist = Math.abs(u - 0.5) * 2.0;
       const centerCrease = (1.0 - Math.pow(centerDist, 0.45)) * 0.002;
-      // Gentle surface film flex
       const wave = Math.sin(u * Math.PI) * 0.002 + Math.sin(v * Math.PI) * 0.002;
       const z = thickness / 2 - centerCrease + wave;
 
@@ -426,7 +566,6 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
 
   const offsetBack = (Nx + 1) * (Ny + 1);
 
-  // Back face
   for (let j = 0; j <= Ny; j++) {
     const v = j / Ny;
     for (let i = 0; i <= Nx; i++) {
@@ -444,7 +583,6 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
     }
   }
 
-  // Front indices
   for (let j = 0; j < Ny; j++) {
     for (let i = 0; i < Nx; i++) {
       const a = j * (Nx + 1) + i;
@@ -457,7 +595,6 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
     }
   }
 
-  // Back indices
   for (let j = 0; j < Ny; j++) {
     for (let i = 0; i < Nx; i++) {
       const a = offsetBack + j * (Nx + 1) + i;
@@ -470,7 +607,6 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
     }
   }
 
-  // Skirts for thin solid depth
   for (let i = 0; i < Nx; i++) {
     const f1 = i;
     const f2 = i + 1;
@@ -491,7 +627,7 @@ export function createOralStripGeometry(Nx = 28, Ny = 38, width = 1.12, height =
     const f1 = j * (Nx + 1);
     const f2 = (j + 1) * (Nx + 1);
     const b1 = offsetBack + j * (Nx + 1);
-    const b2 = (j + 1) * (Nx + 1);
+    const b2 = offsetBack + (j + 1) * (Nx + 1);
     indices.push(f1, b2, b1);
     indices.push(f1, f2, b2);
 

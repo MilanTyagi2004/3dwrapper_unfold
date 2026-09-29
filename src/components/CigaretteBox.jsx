@@ -147,23 +147,24 @@ export function CigaretteBox({ animRef }) {
   // Inner Collar / Throat Material (sleek matte charcoal with subtle red glow)
   const collarMat = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: 0x141416,
-      roughness: 0.42,
-      metalness: 0.12,
+      color: 0x4A0808,   // dark burgundy — same red family as box, clearly darker (inner cardstock feel)
+      roughness: 0.65,   // matte cardstock texture
+      metalness: 0.05,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 1.0
     });
   }, []);
 
-  // Sealed background pouches material (crisp, solid, depthWrite: true so never transparent/black!)
+  // Sealed background pouches material — clearly matte red to match hero pouch
   const sealedFrontMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
       map: pouchFront,
-      roughness: 0.35,
-      metalness: 0.04,
-      clearcoat: 0.25,
-      clearcoatRoughness: 0.4,
+      roughness: 0.82,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 1.0,
+      reflectivity: 0.06,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0,
@@ -174,10 +175,11 @@ export function CigaretteBox({ animRef }) {
   const sealedBackMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
       map: pouchBack,
-      roughness: 0.35,
-      metalness: 0.04,
-      clearcoat: 0.25,
-      clearcoatRoughness: 0.4,
+      roughness: 0.82,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 1.0,
+      reflectivity: 0.06,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0,
@@ -189,12 +191,12 @@ export function CigaretteBox({ animRef }) {
   const collarFrontGeom = useMemo(() => {
     const shape = new THREE.Shape();
     const w2 = (BOX_W - 0.02) / 2;
-    const botY = -0.5;
+    const botY = 0.0;   // starts at the seam — no lower portion that gets occluded
     const topY = 0.44;
     const notchBottom = 0.14;
     const notchWidth = 0.65;
 
-    // Outer contour with U-cutout at top
+    // Outer contour with U-cutout at top — purely in the lid-opening space
     shape.moveTo(-w2, botY);
     shape.lineTo(-w2, topY);
     shape.lineTo(-w2 * 0.72, topY);
@@ -254,10 +256,10 @@ export function CigaretteBox({ animRef }) {
     const t = state.clock.elapsedTime;
     const floatTarget = Math.sin(t * 0.80) * 0.036 * idleFactor;   // ~7.9s period, ±0.036 units
     const swingTarget = Math.sin(t * 0.62 + 1.1) * 0.012 * idleFactor; // ~10.1s period, ±0.7°
-    const tiltTarget  = Math.sin(t * 0.48 + 2.4) * 0.005 * idleFactor; // ~13.1s period, ±0.3°
+    const tiltTarget = Math.sin(t * 0.48 + 2.4) * 0.005 * idleFactor; // ~13.1s period, ±0.3°
     swingLerp.current.floatY = THREE.MathUtils.lerp(swingLerp.current.floatY, floatTarget, 0.014);
     swingLerp.current.swingZ = THREE.MathUtils.lerp(swingLerp.current.swingZ, swingTarget, 0.014);
-    swingLerp.current.tiltX  = THREE.MathUtils.lerp(swingLerp.current.tiltX,  tiltTarget,  0.014);
+    swingLerp.current.tiltX = THREE.MathUtils.lerp(swingLerp.current.tiltX, tiltTarget, 0.014);
 
     // 1. Root Cigarette Box Transform
     if (boxRootRef.current) {
@@ -286,13 +288,11 @@ export function CigaretteBox({ animRef }) {
       }
     });
 
-    // Collar: visible when lid is open, fades OUT as the packet slides up through it.
-    // packetExitProgress: 0 when packet is inside the box, ramps to 1 as it exits.
-    // This prevents the "growing black band" effect when the packet passes through the collar.
-    const packetY = anim.packetY ?? -0.651;
-    const packetExitProgress = Math.max(0, Math.min(1, (packetY - 0.05) / 0.65));
-    const collarOpenT = boxOpen * boxOpen * (3.0 - 2.0 * boxOpen); // smoothstep on lid open
-    const collarOpacity = collarOpenT * (1.0 - packetExitProgress) * boxOpacity;
+    // Collar: hidden when closed, visible when lid is open.
+    // Geometry is now always in front of the packet (z = BOX_D/2 + 0.005),
+    // so no occlusion by the packet — size is geometrically constant.
+    const collarT = boxOpen * boxOpen * (3.0 - 2.0 * boxOpen); // smoothstep on lid
+    const collarOpacity = collarT * boxOpacity;
     if (collarMat) {
       collarMat.opacity = collarOpacity;
       collarMat.transparent = true;
@@ -395,8 +395,8 @@ export function CigaretteBox({ animRef }) {
           INNER COLLAR / THROAT:
           Classic cigarette box cardstock insert with U-thumb cutout sticking up past y = 0
         */}
-        <group position={[0, 0, BOX_D / 2 - 0.015]}>
-          {/* Collar Front with U-cutout */}
+        <group position={[0, 0, BOX_D / 2 + 0.005]}>
+          {/* Collar Front — trimmed to lid-opening space only, always in front of packet */}
           <mesh geometry={collarFrontGeom} material={collarMat} position={[0, 0, 0]} />
         </group>
         {/* Collar Left Side Wing */}

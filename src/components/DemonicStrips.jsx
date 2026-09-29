@@ -87,7 +87,7 @@ const INITIAL_ANIM = {
   packetCrumple: 0,
   peel: 0,
   stripX: 0.0,
-  stripY: 0.45,
+  stripY: -0.12,
   stripZ: 0.008,
   stripRotX: 0,
   stripRotY: 0,
@@ -242,22 +242,26 @@ const DemonicStrips = () => {
     }, 2.95);
 
     // =========================================================================
-    // 3.80s – 5.35s : STAGE 03 (READY / PEEL) — TACTILE FOIL PEEL DOWN
-    // The top notch initiates the peel and strips smoothly down the full pouch,
-    // unveiling the inner cavity bed and the oral strip with authentic metallic foil physics
+    // 3.80s – 5.65s : STAGE 03 (READY / PEEL) — TACTILE FOIL PEEL DOWN
+    // Real foil peel feel: slow grab at notch → accelerating pull → gentle settle
     // =========================================================================
     tl.to(animObj, {
       peel: 1.0,
-      duration: 1.55,
-      ease: 'power1.inOut'
+      duration: 1.85,
+      ease: 'power2.inOut'  // slow start (notch grab) → accelerating pull → settle
     }, 3.8);
 
-    // Subtle tactile tension reaction on the packet during the physical peel pull
+    // Micro-jerk at peel start: slight pull-back tension, then settle forward as foil yields
     tl.to(animObj, {
-      packetRotX: -0.015,
-      duration: 0.75,
-      ease: 'sine.out'
+      packetRotX: -0.035,   // slight backward tilt from pull tension
+      duration: 0.30,
+      ease: 'power3.out'
     }, 3.8);
+    tl.to(animObj, {
+      packetRotX: -0.010,   // settles naturally as foil gives way
+      duration: 1.55,
+      ease: 'sine.out'
+    }, 4.1);
 
     tl.to(animObj, {
       packetRotX: -0.04,
@@ -289,7 +293,7 @@ const DemonicStrips = () => {
     }, 5.35);
 
     tl.to(animObj, {
-      stripY: 0.16,
+      stripY: -0.02,
       duration: 1.25,
       ease: 'sine.inOut'
     }, 5.35);
@@ -311,7 +315,7 @@ const DemonicStrips = () => {
     // Strip and platelets drift, dissolve and disappear continuously right up to 9.6s
     // =========================================================================
     tl.to(animObj, {
-      stripY: 0.21,
+      stripY: 0.03,
       duration: 1.6,
       ease: 'sine.inOut'
     }, 6.6);
@@ -323,7 +327,7 @@ const DemonicStrips = () => {
     }, 6.6);
 
     tl.to(animObj, {
-      stripY: 0.17,
+      stripY: -0.02,
       duration: 1.6,
       ease: 'sine.inOut'
     }, 8.0);
@@ -400,29 +404,42 @@ const DemonicStrips = () => {
               dpr={[1, 2]}
             >
               <ResponsiveCamera />
-              <ambientLight intensity={0.55} />
+              {/* Soft, rich ambient illumination for pure matte diffuse red */}
+              <ambientLight intensity={1.15} />
 
+              {/* Gentle directional key light (soft shadows, no hot glossy spots) */}
               <directionalLight
-                position={[4, 6, 5]}
-                intensity={1.2}
+                position={[4.0, 5.5, 5.0]}
+                intensity={1.05}
+                color="#fff6f0"
                 castShadow
               />
 
+              {/* Soft fill light from upper left */}
+              <directionalLight
+                position={[-3.5, 3.5, 3.0]}
+                intensity={0.45}
+                color="#ffe8e8"
+              />
+
+              {/* Gentle crimson bounce light */}
               <pointLight
-                position={[-4.5, 2, -1.5]}
-                color="#ff003c"
-                intensity={3.8}
+                position={[-4.0, 2.0, 2.5]}
+                color="#ff1234"
+                intensity={1.2}
                 distance={12}
               />
 
+              {/* Crisp oral strip accent */}
               <pointLight
                 position={[2.5, -2, 3.5]}
                 color="#38bdf8"
-                intensity={0.8}
+                intensity={0.35}
                 distance={10}
               />
 
-              <Environment preset="studio" environmentIntensity={0.25} />
+              {/* Very low environment reflection to eliminate all glossy glare */}
+              <Environment preset="studio" environmentIntensity={0.05} />
 
               <Suspense fallback={null}>
                 <CigaretteBox animRef={animRef} />
