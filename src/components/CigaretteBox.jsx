@@ -268,7 +268,7 @@ export function CigaretteBox({ animRef }) {
       boxRootRef.current.rotation.y = boxRotY + mouseLerp.current.x;
       boxRootRef.current.rotation.z = boxRotZ + swingLerp.current.swingZ;
       boxRootRef.current.scale.setScalar(boxScale);
-      boxRootRef.current.visible = boxOpacity > 0.01;
+      boxRootRef.current.visible = boxOpacity > 0.001;
     }
 
     // 2. Flip-Top Lid Hinge Rotation: flips back around X-axis (-2.15 rad = ~ -123°)
@@ -283,8 +283,8 @@ export function CigaretteBox({ animRef }) {
     [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, sealedFrontMat, sealedBackMat].forEach((mat) => {
       if (mat) {
         mat.opacity = boxOpacity;
-        mat.transparent = isFading;
-        mat.depthWrite = !isFading;
+        mat.transparent = true;         // always transparent so Three.js fades it smoothly
+        mat.depthWrite = boxOpacity > 0.9; // depthWrite only when nearly opaque
       }
     });
 

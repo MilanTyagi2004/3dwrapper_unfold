@@ -86,6 +86,7 @@ const INITIAL_ANIM = {
   packetOpacity: 1.0,
   packetCrumple: 0,
   peel: 0,
+  backOpacity: 1.0,
   stripX: 0.0,
   stripY: -0.12,
   stripZ: 0.008,
@@ -232,13 +233,18 @@ const DemonicStrips = () => {
       ease: 'power2.inOut'
     }, 2.95);
 
-    // Step 3: Concurrently at t >= 2.95s, box drops and recedes away into the background
+    // Step 3: Box smoothly recedes & fades — same gradual feel as silver foil
+    tl.to(animObj, {
+      boxOpacity: 0.0,
+      duration: 2.0,
+      ease: 'sine.inOut'
+    }, 2.95);
+
     tl.to(animObj, {
       boxZ: -3.5,
       boxY: -0.80,
-      boxOpacity: 0.0,
-      duration: 0.85,
-      ease: 'sine.in'
+      duration: 2.2,
+      ease: 'sine.inOut'
     }, 2.95);
 
     // =========================================================================
@@ -275,13 +281,20 @@ const DemonicStrips = () => {
     // =========================================================================
     tl.to(animObj, {
       packetOpacity: 0.0,
-      duration: 1.25,
-      ease: 'sine.inOut'
+      duration: 2.2,
+      ease: 'power1.out'
     }, 5.35);
 
+    // Back silver foil fades independently — starts during peel, very gradual
     tl.to(animObj, {
-      packetZ: -0.16,
-      duration: 1.20,
+      backOpacity: 0.0,
+      duration: 2.5,
+      ease: 'sine.inOut'
+    }, 4.8);
+
+    tl.to(animObj, {
+      packetZ: -0.22,
+      duration: 2.0,
       ease: 'sine.out'
     }, 5.35);
 

@@ -490,6 +490,7 @@ export function PouchModel({ animProps, animRef }) {
     const peel = anim.peel ?? 0;
     const packetCrumple = anim.packetCrumple ?? 0;
     const packetOpacity = anim.packetOpacity ?? 1.0;
+    const backOpacity = anim.backOpacity ?? 1.0;
     const packetX = anim.packetX ?? 0;
     const packetY = anim.packetY ?? 0;
     const packetZ = anim.packetZ ?? 0;
@@ -519,10 +520,14 @@ export function PouchModel({ animProps, animRef }) {
     }
 
     // Dynamic Opacity & Visibility
-    const peelFade = Math.max(0, Math.min(1, 1.0 - Math.max(0, (peel - 0.88) / 0.10)));
+    // Front foil: fade starts at peel=0.70, finishes at peel=1.0 (wider = smoother)
+    const peelFade = Math.max(0, Math.min(1, 1.0 - Math.max(0, (peel - 0.70) / 0.30)));
     const frontLayerOpacity = packetOpacity * peelFade;
     const isFrontTransp = frontLayerOpacity < 0.99;
-    const isTransp = packetOpacity < 0.99;
+
+    // Back silver foil uses its OWN dedicated opacity — fully GSAP-driven, smooth, independent
+    const isBackTransp = backOpacity < 0.99;
+    const isFrontTranspFlag = packetOpacity < 0.99;
 
     if (frontMaterial) {
       frontMaterial.opacity = frontLayerOpacity;
@@ -542,19 +547,19 @@ export function PouchModel({ animProps, animRef }) {
     }
 
     if (backMaterial) {
-      backMaterial.opacity = packetOpacity;
-      backMaterial.depthWrite = !isTransp;
-      backMaterial.transparent = isTransp;
+      backMaterial.opacity = backOpacity;
+      backMaterial.depthWrite = !isBackTransp;
+      backMaterial.transparent = isBackTransp || true;
     }
     if (innerFoilMaterial) {
-      innerFoilMaterial.opacity = packetOpacity;
-      innerFoilMaterial.depthWrite = !isTransp;
-      innerFoilMaterial.transparent = isTransp;
+      innerFoilMaterial.opacity = backOpacity;
+      innerFoilMaterial.depthWrite = !isBackTransp;
+      innerFoilMaterial.transparent = isBackTransp || true;
     }
 
-    // Inner cavity strictly hidden when sealed
+    // Inner cavity visible during peel, fades with dedicated backOpacity
     if (innerCavityMeshRef.current) {
-      innerCavityMeshRef.current.visible = peel > 0.02 && packetOpacity > 0.005;
+      innerCavityMeshRef.current.visible = peel > 0.02 && backOpacity > 0.002;
     }
 
     // 2. Mouse Parallax
@@ -586,7 +591,7 @@ export function PouchModel({ animProps, animRef }) {
       const scaleZ = (1.0 + packetCrumple * 0.70) * packetScale;
       packetGroupRef.current.scale.set(scaleX, scaleY, scaleZ);
 
-      packetGroupRef.current.visible = packetOpacity > 0.002 && packetY > -10.0;
+      packetGroupRef.current.visible = Math.max(packetOpacity, backOpacity) > 0.002 && packetY > -10.0;
     }
 
     // 4. Oral Strip Position & Orientation
