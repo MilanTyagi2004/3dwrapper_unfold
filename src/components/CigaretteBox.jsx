@@ -283,8 +283,8 @@ export function CigaretteBox({ animRef }) {
     [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, sealedFrontMat, sealedBackMat].forEach((mat) => {
       if (mat) {
         mat.opacity = boxOpacity;
-        mat.transparent = true;         // always transparent so Three.js fades it smoothly
-        mat.depthWrite = boxOpacity > 0.9; // depthWrite only when nearly opaque
+        mat.transparent = isFading;
+        mat.depthWrite = !isFading;
       }
     });
 
