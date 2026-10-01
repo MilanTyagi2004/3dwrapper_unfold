@@ -213,9 +213,9 @@ const DemonicStrips = () => {
     // Step 1: Packet slides straight UP along the box throat, completely emerging
     // Box remains 100% fixed at [0, 0.05, 0] with zero movement!
     tl.to(animObj, {
-      packetX: -0.025,
-      packetY: 1.86,
-      packetZ: 0.38,
+      packetX: -.072,
+      packetY: 1.96,
+      packetZ: 0.49,
       duration: 0.85,
       ease: 'power2.out'
     }, 2.05);
