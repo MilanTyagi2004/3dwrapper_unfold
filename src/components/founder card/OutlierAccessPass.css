@@ -1,0 +1,481 @@
+/* ============================================
+   DEMONIC FUEL — Outlier Access Pass
+   Digital Founder Dossier & 3D Tilt Card
+   ============================================ */
+
+.outlier-pass {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Phase 1: Form Box ───────────────────────────────────────── */
+.outlier-pass__form-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.outlier-pass__queue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(234, 9, 23, 0.08);
+  border: 1px solid rgba(234, 9, 23, 0.3);
+  padding: 6px 14px;
+  width: fit-content;
+}
+
+.outlier-pass__dot-pulse {
+  width: 7px;
+  height: 7px;
+  background: var(--devil-red);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--devil-red);
+  animation: pulseOutlierDot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseOutlierDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(1.6); }
+}
+
+.outlier-pass__form-title {
+  font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+  color: var(--cream);
+  line-height: 1.2;
+}
+
+.outlier-pass__form-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--cream-70);
+  margin-top: -6px;
+}
+
+.outlier-pass__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.outlier-pass__input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outlier-pass__input {
+  background: #070605;
+  border: 1px solid rgba(255, 254, 225, 0.14);
+  color: var(--cream);
+  padding: 14px 18px;
+  font-family: var(--font-tech);
+  font-size: 0.88rem;
+  letter-spacing: 0.15em;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.outlier-pass__input:focus {
+  border-color: var(--devil-red);
+  box-shadow: 0 0 18px rgba(234, 9, 23, 0.25);
+}
+
+.outlier-pass__input::placeholder {
+  color: var(--cream-30);
+  font-size: 0.82em;
+}
+
+.outlier-pass__submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--devil-red);
+  color: var(--cream);
+  border: 1px solid var(--devil-red-bright);
+  padding: 16px 28px;
+  font-family: var(--font-tech);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 0 25px rgba(234, 9, 23, 0.4);
+  transition: all 0.3s ease;
+}
+
+.outlier-pass__submit-btn:hover {
+  background: var(--devil-red-bright);
+  box-shadow: 0 0 40px rgba(234, 9, 23, 0.7);
+}
+
+/* ── Phase 2: Verification Sequence ──────────────────────────── */
+.outlier-pass__verify-box {
+  background: #080706;
+  border: 1px solid rgba(234, 9, 23, 0.4);
+  padding: 42px 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(234, 9, 23, 0.15);
+}
+
+.outlier-pass__scan-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.outlier-pass__scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--devil-red), #ff4d58, transparent);
+  box-shadow: 0 0 15px var(--devil-red);
+  animation: scanLineMove 1.4s infinite ease-in-out;
+}
+
+@keyframes scanLineMove {
+  0%   { transform: translateY(0); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(220px); opacity: 0; }
+}
+
+.outlier-pass__scan-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(234, 9, 23, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.outlier-pass__scan-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.outlier-pass__scan-emblem {
+  font-size: 2rem;
+  color: var(--devil-red);
+  animation: emblemPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes emblemPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px var(--devil-red)); }
+  50%       { transform: scale(1.15); filter: drop-shadow(0 0 25px var(--devil-red)); }
+}
+
+.outlier-pass__scan-message {
+  font-size: 1.3rem;
+  color: var(--cream);
+  letter-spacing: 0.08em;
+  min-height: 2em;
+}
+
+.outlier-pass__scan-bar {
+  width: 240px;
+  height: 3px;
+  background: rgba(255, 254, 225, 0.1);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.outlier-pass__scan-progress {
+  height: 100%;
+  background: linear-gradient(90deg, #8F050C, var(--devil-red), #ff7a82);
+  box-shadow: 0 0 12px var(--devil-red);
+  width: 20%;
+}
+
+/* ── Phase 3: Granted // 3D Card Dossier ──────────────────────── */
+.outlier-pass__granted-box {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Acknowledgment message */
+.outlier-pass__ack {
+  background: rgba(234, 9, 23, 0.07);
+  border: 1px solid rgba(234, 9, 23, 0.35);
+  padding: 14px 18px;
+}
+
+.outlier-pass__ack-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.outlier-pass__ack-icon {
+  color: var(--devil-red);
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.outlier-pass__ack-email {
+  font-size: 0.85rem;
+  color: var(--cream);
+  font-family: var(--font-tech);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+.outlier-pass__ack-email strong {
+  color: var(--cream);
+}
+
+/* 3D Card Container */
+.outlier-pass__card-container {
+  perspective: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.outlier-pass__card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  min-height: 290px;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(234, 9, 23, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, #18090a 0%, #0d0607 50%, #1a0809 100%);
+  border: 1px solid rgba(255, 254, 225, 0.2);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.95),
+    0 0 35px rgba(234, 9, 23, 0.15),
+    inset 0 0 0 1px rgba(234, 9, 23, 0.25);
+  transition: transform 0.1s linear;
+  transform-style: preserve-3d;
+  overflow: hidden;
+  cursor: grab;
+}
+
+/* Holographic dynamic sheen */
+.outlier-pass__card-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 2;
+  transition: background 0.1s linear;
+}
+
+/* Card Top */
+.outlier-pass__card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 3;
+}
+
+.outlier-pass__card-brand {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--cream);
+  letter-spacing: 0.08em;
+}
+
+.outlier-pass__card-edition {
+  display: block;
+  font-family: var(--font-tech);
+  font-size: 0.65rem;
+  color: var(--devil-red);
+  letter-spacing: 0.22em;
+  margin-top: 2px;
+}
+
+.outlier-pass__seal-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 254, 225, 0.3);
+  box-shadow: 0 0 15px rgba(255, 254, 225, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, #252220 0%, #0d0c0b 100%);
+  overflow: hidden;
+}
+
+.outlier-pass__seal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.outlier-pass__card-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--devil-red), rgba(255, 254, 225, 0.1), transparent);
+  margin: 12px 0;
+  position: relative;
+  z-index: 3;
+}
+
+/* Card Body */
+.outlier-pass__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 3;
+}
+
+.outlier-pass__card-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.outlier-pass__card-name {
+  font-size: 1.25rem;
+  color: var(--cream);
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.outlier-pass__card-ig {
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  color: var(--devil-red);
+  letter-spacing: 0.15em;
+}
+
+.outlier-pass__card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 254, 225, 0.05);
+}
+
+.outlier-pass__card-val {
+  display: block;
+  font-family: var(--font-tech);
+  font-size: 0.82rem;
+  color: var(--cream-90);
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+}
+
+.outlier-pass__card-val--red {
+  color: var(--devil-red);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.outlier-pass__card-val--active {
+  color: #55efc4;
+}
+
+/* Card Bottom Barcode */
+.outlier-pass__card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 254, 225, 0.07);
+  position: relative;
+  z-index: 3;
+}
+
+.outlier-pass__barcode {
+  display: flex;
+  align-items: flex-end;
+  height: 24px;
+}
+
+.outlier-pass__bar {
+  display: inline-block;
+  height: 100%;
+  background: var(--cream);
+}
+
+.outlier-pass__date-stamp {
+  font-size: 0.65rem;
+  color: var(--cream-50);
+}
+
+/* Actions */
+.outlier-pass__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.outlier-pass__export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  background: transparent;
+  border: 1px solid var(--devil-red);
+  color: var(--cream);
+  font-family: var(--font-tech);
+  font-size: 0.82rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(234, 9, 23, 0.25);
+  transition: all 0.3s ease;
+}
+
+.outlier-pass__export-btn:hover {
+  background: rgba(234, 9, 23, 0.15);
+  border-color: var(--devil-red-bright);
+  box-shadow: 0 0 35px rgba(234, 9, 23, 0.5);
+}
+
+.outlier-pass__export-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.outlier-pass__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 254, 225, 0.2);
+  border-top-color: var(--devil-red);
+  border-radius: 50%;
+  animation: outlierSpin 0.7s linear infinite;
+}
+
+@keyframes outlierSpin {
+  to { transform: rotate(360deg); }
+}
+
+.outlier-pass__reset-btn {
+  background: transparent;
+  border: none;
+  color: var(--cream-50);
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  padding: 6px;
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.outlier-pass__reset-btn:hover {
+  color: var(--cream);
+}

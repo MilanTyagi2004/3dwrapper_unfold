@@ -6,23 +6,50 @@ import { PouchModel } from './Packet3D';
 import { CigaretteBox } from './CigaretteBox';
 import './DemonicStrips.css';
 
-// Responsive Camera Controller: Centers 3D model horizontally and frames it compactly on mobile
+// Responsive Camera Controller: dynamically calculates optimal FOV & camera position based on screen dimensions and orientation
 function ResponsiveCamera() {
-  const { camera, size } = useThree();
+  const { camera } = useThree();
 
   useEffect(() => {
-    const isMobile = size.width <= 840;
-    if (isMobile) {
-      camera.position.set(0, 0.06, 8.6);
-      camera.lookAt(0, 0.06, 0);
-      camera.fov = 44;
-    } else {
-      camera.position.set(0.14, 0.0, 8.6);
-      camera.lookAt(0.14, 0, 0);
-      camera.fov = 43;
+    function updateCamera() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const isPortrait = h > w;
+      const isShortLandscape = !isPortrait && h <= 560;
+
+      if (w <= 480 && isPortrait) {
+        // Small/standard mobile portrait
+        camera.position.set(0, 0.05, 8.8);
+        camera.lookAt(0, 0.05, 0);
+        camera.fov = 46;
+      } else if (w <= 840 && isPortrait) {
+        // Larger mobile / compact tablet portrait
+        camera.position.set(0, 0.05, 8.7);
+        camera.lookAt(0, 0.05, 0);
+        camera.fov = 44;
+      } else if (w <= 1024 && isPortrait) {
+        // Tablet portrait (iPad 768x1024, 820x1180, 1024x1366)
+        camera.position.set(0, 0.04, 8.6);
+        camera.lookAt(0, 0.04, 0);
+        camera.fov = 43;
+      } else if (isShortLandscape) {
+        // Mobile landscape (e.g. 667x375, 844x390, 932x430)
+        camera.position.set(0.04, 0.02, 8.6);
+        camera.lookAt(0.04, 0.02, 0);
+        camera.fov = 42;
+      } else {
+        // Desktop / Laptop (side-by-side hero composition)
+        camera.position.set(0.14, 0.0, 8.6);
+        camera.lookAt(0.14, 0, 0);
+        camera.fov = 43;
+      }
+      camera.updateProjectionMatrix();
     }
-    camera.updateProjectionMatrix();
-  }, [size.width, camera]);
+
+    updateCamera();
+    window.addEventListener('resize', updateCamera);
+    return () => window.removeEventListener('resize', updateCamera);
+  }, [camera]);
 
   return null;
 }

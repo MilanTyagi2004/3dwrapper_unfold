@@ -1,7 +1,8 @@
 .strips-section {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  min-height: 100vh;
   background: radial-gradient(circle at 45% 48%, #160408 0%, #0a0103 45%, #020001 100%);
   overflow: hidden;
   color: #ffffff;
@@ -13,8 +14,8 @@
   top: 48%;
   left: 42%;
   transform: translate(-50%, -50%);
-  width: 650px;
-  height: 650px;
+  width: min(650px, 90vw);
+  height: min(650px, 90vw);
   background: radial-gradient(circle, rgba(255, 0, 60, 0.07) 0%, rgba(2, 132, 199, 0.03) 40%, transparent 70%);
   filter: blur(100px);
   pointer-events: none;
@@ -23,15 +24,16 @@
 
 /* Main full-screen content frame */
 .strips-content-frame {
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1.2rem;
-  padding: 2rem 3.5rem;
+  gap: clamp(0.4rem, 1.4vh, 1.2rem);
+  padding: clamp(1rem, 2.5vh, 2rem) clamp(1rem, 3.5vw, 3.5rem);
   box-sizing: border-box;
   position: relative;
   z-index: 2;
@@ -48,21 +50,21 @@
 
 .brand-eyebrow {
   display: block;
-  font-size: 0.70rem;
+  font-size: clamp(0.6rem, 1.1vw, 0.72rem);
   font-weight: 700;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .brand-title {
-  font-size: clamp(1.8rem, 3.2vw, 2.7rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.7rem);
   font-weight: 900;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   line-height: 1.05;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.2rem 0;
   color: #ffffff;
 }
 
@@ -72,7 +74,7 @@
 }
 
 .brand-tagline {
-  font-size: clamp(0.78rem, 1.0vw, 0.88rem);
+  font-size: clamp(0.72rem, 1.0vw, 0.88rem);
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.08em;
   margin: 0;
@@ -89,7 +91,7 @@
   width: 100%;
   flex: 1;
   min-height: 0;
-  gap: 2rem;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
   z-index: 3;
 }
 
@@ -97,7 +99,7 @@
 .packet-canvas-stage {
   flex: 1.35;
   height: 100%;
-  min-height: 480px;
+  min-height: 360px;
   position: relative;
   display: flex;
   align-items: center;
@@ -122,9 +124,9 @@
 */
 .editorial-story-panel {
   flex: 1.15;
-  max-width: 560px;
+  max-width: min(560px, 46vw);
   position: relative;
-  min-height: 360px;
+  min-height: 320px;
   display: flex;
   align-items: center;
   transition: opacity 0.4s ease;
@@ -222,12 +224,12 @@
 
 /* Large Headline */
 .editorial-headline {
-  font-size: clamp(2.8rem, 4.3vw, 4.3rem);
+  font-size: clamp(2.4rem, 4.3vw, 4.3rem);
   font-weight: 900;
   line-height: 1.07;
   letter-spacing: -0.03em;
   color: #ffffff;
-  margin: 0 0 1.35rem 0;
+  margin: 0 0 1.2rem 0;
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 }
 
@@ -237,7 +239,7 @@
 
 /* Description */
 .editorial-description {
-  font-size: clamp(1.08rem, 1.32vw, 1.28rem);
+  font-size: clamp(0.98rem, 1.25vw, 1.28rem);
   color: rgba(255, 255, 255, 0.78);
   line-height: 1.62;
   margin: 0;
@@ -250,7 +252,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1.5rem;
-  margin-top: 2.1rem;
+  margin-top: 1.8rem;
   font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -269,30 +271,49 @@
   font-size: 0.9rem;
 }
 
+/* ==============================================================
+   RESPONSIVE ADAPTATIONS
+   ============================================================== */
 
-
-/* 
-  RESPONSIVE ADAPTATIONS
-*/
-@media (max-width: 1024px) {
+/* 1. Tablet Landscape & Small Laptops (1024px and below) */
+@media (max-width: 1024px) and (min-width: 841px) and (min-height: 561px) {
   .strips-content-frame {
-    padding: 1.8rem 2rem 1.4rem;
+    padding: 1.6rem 2rem 1.2rem;
   }
 
   .editorial-headline {
-    font-size: clamp(2rem, 3.2vw, 2.8rem);
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    margin-bottom: 0.9rem;
   }
 
   .editorial-story-panel {
-    max-width: 380px;
+    max-width: min(460px, 45vw);
+    min-height: 280px;
+  }
+
+  .editorial-description {
+    font-size: 0.96rem;
+  }
+
+  .editorial-meta-row {
+    margin-top: 1.2rem;
   }
 }
 
-@media (max-width: 840px) {
+/* 2. Mobile Portrait (Smartphones <= 699px portrait, <= 600px) */
+@media (max-width: 699px) and (orientation: portrait), (max-width: 600px) {
+  .strips-section {
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+  }
+
   .strips-content-frame {
-    padding: 1.2rem 1.4rem 1rem;
+    height: auto;
+    min-height: auto;
+    padding: clamp(0.7rem, 1.8vh, 1.2rem) clamp(0.8rem, 3.5vw, 1.4rem) 0.5rem;
     justify-content: flex-start;
-    gap: 0.4rem;
+    gap: 0.25rem;
   }
 
   .strips-top-brand {
@@ -301,55 +322,58 @@
   }
 
   .brand-eyebrow {
-    font-size: 0.65rem;
-    margin-bottom: 0.2rem;
+    font-size: clamp(0.6rem, 2.2vw, 0.68rem);
+    margin-bottom: 0.15rem;
   }
 
   .brand-title {
-    font-size: clamp(1.6rem, 5vw, 2.2rem);
-    margin: 0 0 0.2rem 0;
+    font-size: clamp(1.5rem, 5.2vw, 2.1rem);
+    margin: 0 0 0.15rem 0;
   }
 
   .brand-tagline {
-    font-size: 0.8rem;
+    font-size: clamp(0.74rem, 2.5vw, 0.82rem);
   }
 
   .strips-main-stage {
     flex-direction: column;
-    justify-content: flex-start; /* Eliminates space-between pushing items to screen edges */
+    justify-content: flex-start;
     align-items: center;
-    gap: 0; /* Seamless transition from canvas to text */
-    flex: 1;
+    gap: 0;
+    flex: none;
     min-height: 0;
   }
 
   .packet-canvas-stage {
     flex: none;
     width: 100%;
-    height: 38vh;
-    min-height: 230px;
-    max-height: 320px;
-    margin-bottom: 0.2rem;
+    height: clamp(170px, 32vh, 260px);
+    min-height: 170px;
+    max-height: 280px;
+    margin-bottom: 0.1rem;
   }
 
   .editorial-story-panel {
-    flex: 1;
+    flex: none;
     max-width: 100%;
     width: 100%;
-    min-height: 180px;
+    min-height: 170px;
+    height: 170px;
     padding-left: 0;
     text-align: center;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Anchors text right below canvas */
+    align-items: flex-start;
+    position: relative;
+    margin-bottom: 0.5rem;
   }
 
   .editorial-content-block {
     position: absolute;
-    top: 0; /* Anchor directly to top of editorial panel instead of top: 50% */
+    top: 0;
     left: 0;
     right: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
 
   .editorial-content-block.is-active {
@@ -357,50 +381,215 @@
   }
 
   .editorial-content-block.is-prev {
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
 
   .editorial-eyebrow {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
+    font-size: clamp(0.7rem, 2.4vw, 0.8rem);
+  }
+
+  .eyebrow-line {
+    width: 20px;
   }
 
   .editorial-headline {
-    font-size: clamp(1.5rem, 5.2vw, 2.1rem);
-    margin-bottom: 0.4rem;
+    font-size: clamp(1.4rem, 5.2vw, 2rem);
+    margin-bottom: 0.3rem;
     line-height: 1.1;
   }
 
   .editorial-description {
-    font-size: 0.90rem;
-    max-width: 90%;
+    font-size: clamp(0.8rem, 2.6vw, 0.92rem);
+    max-width: 94%;
     margin: 0 auto;
-    line-height: 1.45;
+    line-height: 1.42;
   }
 
   .editorial-meta-row {
     justify-content: center;
-    margin-top: 0.75rem;
-    gap: 1rem;
-    font-size: 0.76rem;
-  }
-
-  .strips-footer-timeline {
-    max-width: 100%;
+    margin-top: clamp(0.45rem, 1.4vh, 0.75rem);
+    gap: 0.8rem;
+    font-size: clamp(0.68rem, 2.1vw, 0.76rem);
   }
 }
 
-@media (max-height: 720px) and (max-width: 840px) {
+/* 3. Tablet Portrait (700px - 1024px portrait) */
+@media (min-width: 700px) and (max-width: 1024px) and (orientation: portrait) {
   .strips-content-frame {
-    padding: 0.8rem 1rem;
+    padding: clamp(1.8rem, 3vh, 3rem) clamp(1.5rem, 4vw, 3rem);
+    justify-content: center;
+    gap: clamp(1rem, 2vh, 1.8rem);
+  }
+
+  .strips-main-stage {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1.4rem;
+    flex: 1;
   }
 
   .packet-canvas-stage {
-    height: 32vh;
-    min-height: 200px;
+    flex: none;
+    width: 100%;
+    height: clamp(380px, 48vh, 540px);
+    min-height: 380px;
+    max-height: 540px;
+    margin-bottom: 0;
+  }
+
+  .editorial-story-panel {
+    flex: none;
+    width: 100%;
+    max-width: 580px;
+    min-height: 220px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .editorial-content-block {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(calc(-50% + 12px));
+  }
+
+  .editorial-content-block.is-active {
+    transform: translateY(-50%);
+  }
+
+  .editorial-content-block.is-prev {
+    transform: translateY(calc(-50% - 12px));
   }
 
   .editorial-headline {
-    font-size: 1.45rem;
+    font-size: clamp(2.4rem, 4.8vw, 3.4rem);
+    margin-bottom: 0.8rem;
+  }
+
+  .editorial-description {
+    font-size: clamp(1.05rem, 2vw, 1.18rem);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .editorial-meta-row {
+    justify-content: center;
+    margin-top: 1.2rem;
+  }
+}
+
+/* 4. Landscape Smartphones & Short Viewports (height <= 560px) */
+@media (max-height: 560px) {
+  .strips-section {
+    min-height: 100vh;
+    height: auto;
+    overflow: visible;
+  }
+
+  .strips-content-frame {
+    min-height: 100vh;
+    height: auto;
+    padding: 0.5rem 1.4rem;
+    gap: 0.35rem;
+    justify-content: center;
+  }
+
+  .strips-top-brand {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .brand-eyebrow {
+    font-size: 0.6rem;
+    margin-bottom: 0.1rem;
+    letter-spacing: 0.2em;
+  }
+
+  .brand-title {
+    font-size: 1.35rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  .strips-main-stage {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    flex: 1;
+    min-height: 210px;
+  }
+
+  .packet-canvas-stage {
+    flex: 1;
+    width: 48%;
+    height: 240px;
+    min-height: 190px;
+    max-height: 270px;
+    margin-bottom: 0;
+  }
+
+  .editorial-story-panel {
+    flex: 1;
+    width: 52%;
+    max-width: 440px;
+    min-height: 190px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+  }
+
+  .editorial-content-block {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(calc(-50% + 10px));
+  }
+
+  .editorial-content-block.is-active {
+    transform: translateY(-50%);
+  }
+
+  .editorial-content-block.is-prev {
+    transform: translateY(calc(-50% - 10px));
+  }
+
+  .editorial-eyebrow {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+    letter-spacing: 0.2em;
+  }
+
+  .eyebrow-line {
+    width: 18px;
+  }
+
+  .editorial-headline {
+    font-size: clamp(1.2rem, 3.2vw, 1.75rem);
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+  }
+
+  .editorial-description {
+    font-size: 0.8rem;
+    line-height: 1.38;
+    max-width: 100%;
+  }
+
+  .editorial-meta-row {
+    justify-content: flex-start;
+    margin-top: 0.45rem;
+    font-size: 0.68rem;
+    gap: 0.8rem;
   }
 }
 
