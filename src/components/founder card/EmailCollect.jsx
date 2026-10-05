@@ -612,10 +612,7 @@ export default function EmailCollect() {
           <h2 className="ec__gothic-title">Summon Your Fuel</h2>
           <h3 className="ec__headline">CLAIM YOUR FOUNDER CARD</h3>
           <p className="ec__desc">
-            Everyone has a version of themselves that appears when they truly lock in.
-            We call that version the Demon. <strong>Demonic Fuel is the fuel for that state of mind</strong> —
-            a culture built around obsession, individuality and the pursuit of more, for people who
-            refuse to operate on autopilot.
+            Fuel for the locked-in state. Built for those who refuse autopilot.
           </p>
         </div>
 
@@ -633,10 +630,10 @@ export default function EmailCollect() {
             >
               <div className="ec__form-grid">
                 <div className="ec__field">
-                  <label className="ec__label">01 // YOUR NAME</label>
+                  <label className="ec__label">01 // NAME</label>
                   <input
                     type="text"
-                    placeholder="ENTER YOUR NAME"
+                    placeholder="Full name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="ec__input"
@@ -644,10 +641,10 @@ export default function EmailCollect() {
                   />
                 </div>
                 <div className="ec__field">
-                  <label className="ec__label">02 // EMAIL ADDRESS *</label>
+                  <label className="ec__label">02 // EMAIL *</label>
                   <input
                     type="email"
-                    placeholder="YOUR@EMAIL.COM"
+                    placeholder="name@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="ec__input"
@@ -657,7 +654,7 @@ export default function EmailCollect() {
                 </div>
                 <div className="ec__field ec__field--full">
                   <label className="ec__label">
-                    03 // PHONE NUMBER <span className="ec__optional">(OPTIONAL)</span>
+                    03 // PHONE <span className="ec__optional">(OPTIONAL)</span>
                   </label>
                   <input
                     type="tel"
@@ -676,7 +673,7 @@ export default function EmailCollect() {
               </button>
 
               <p className="ec__disclaimer">
-                ❖ NO SPAM. NO NOISE. JUST FUEL FOR THE OBSESSED.
+                ❖ NO SPAM. NO NOISE.
               </p>
             </motion.form>
           )}

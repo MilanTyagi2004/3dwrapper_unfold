@@ -6,7 +6,6 @@ import { PouchModel } from './Packet3D';
 import { CigaretteBox } from './CigaretteBox';
 import './DemonicStrips.css';
 
-// Responsive Camera Controller: dynamically calculates optimal FOV & camera position based on screen dimensions and orientation
 function ResponsiveCamera() {
   const { camera } = useThree();
 
@@ -394,30 +393,16 @@ const DemonicStrips = () => {
       ease: 'none'
     }, 0.0);
 
-    // IntersectionObserver: auto-start when visible, pause/reset cleanly when out of view
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          tl.play();
-        } else {
-          tl.pause(0);
-        }
-      },
-      { threshold: 0.25 }
-    );
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+    // Infinite continuous playback: runs non-stop without depending on scroll position or scrolling up
+    tl.play();
 
     return () => {
-      observer.disconnect();
       tl.kill();
     };
   }, []);
 
   return (
-    <section ref={sectionRef} className="strips-section">
+    <section ref={sectionRef} id="strips" className="strips-section">
       {/* Subtle Atmospheric Background Glow behind packet */}
       <div className="strips-ambient-glow"></div>
 
