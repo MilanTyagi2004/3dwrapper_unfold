@@ -135,7 +135,29 @@ const DemonicStrips = () => {
 
   // React state updated ONLY when active stage changes (5 times per 9.6s loop)
   const [stageIndex, setStageIndex] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (timelineRef.current) {
+          if (entry.isIntersecting) {
+            timelineRef.current.play();
+          } else {
+            timelineRef.current.pause();
+          }
+        }
+      },
+      { rootMargin: '150px' }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     // Shared continuous animation object driven by GSAP
@@ -424,9 +446,10 @@ const DemonicStrips = () => {
           {/* 3D Packet Canvas Stage */}
           <div className="packet-canvas-stage">
             <Canvas
+              frameloop={isVisible ? 'always' : 'never'}
               camera={{ position: [0.14, 0, 8.6], fov: 43 }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', localClippingEnabled: true }}
-              dpr={[1, 2]}
+              dpr={[1, 1.5]}
             >
               <ResponsiveCamera />
               {/* Soft, rich ambient illumination for pure matte diffuse red */}

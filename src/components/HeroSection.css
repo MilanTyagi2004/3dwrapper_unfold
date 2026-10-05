@@ -1,0 +1,309 @@
+/* ==============================================================
+   DEMONIC FUEL — HERO SECTION (BALANCED TECH-NOIR)
+   Cinematic Video Immersion with Editorial Typography
+   ============================================================== */
+
+.hero-section {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  background: #030102;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Video Canvas Container */
+.hero__video-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.hero__video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  object-position: center center;
+  background: #030102;
+}
+
+.hero__video--idle {
+  z-index: 1;
+  opacity: 1;
+}
+
+.hero__video--awaken {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.hero__video--active {
+  opacity: 1;
+  transition: opacity 0.45s ease-in-out;
+}
+
+/* Cinematic Atmospheric Vignette (Clear top for navbar, soft shadow for bottom typography) */
+.hero__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(3, 1, 2, 0.5) 85%, #030102 100%),
+    linear-gradient(180deg, transparent 0%, transparent 65%, rgba(3, 1, 2, 0.85) 100%);
+}
+
+/* Subtle CRT / Security Feed Scanlines */
+.hero__scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.16;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.5) 50%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 4px, 6px 100%;
+}
+
+/* ==============================================================
+   TARGETED DEMON WORKER HOTSPOT (RIGHT SIDE LAB STATION)
+   ============================================================== */
+
+.hero__hotspot {
+  position: absolute;
+  right: 7%;
+  top: 22%;
+  width: 22%;
+  height: 74%;
+  z-index: 10;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
+/* ==============================================================
+   EDITORIAL TECH-NOIR CONTENT OVERLAY (BOTTOM-LEFT)
+   ============================================================== */
+
+.hero__content {
+  position: relative;
+  z-index: 10;
+  padding: 0 44px 54px 44px;
+  max-width: 480px;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(8, 2, 4, 0.75);
+  border: 1px solid rgba(234, 9, 23, 0.28);
+  border-radius: 2px;
+  backdrop-filter: blur(8px);
+  margin-bottom: 12px;
+}
+
+.hero__badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ea0917;
+  box-shadow: 0 0 6px #ea0917;
+}
+
+.hero__badge-text {
+  font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: #ea0917;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.hero__title {
+  font-family: 'Cabinet Grotesk', -apple-system, sans-serif;
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  color: #f7eee2;
+  margin: 0 0 10px 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+}
+
+.hero__subtitle {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(247, 238, 226, 0.72);
+  margin: 0 0 18px 0;
+  max-width: 420px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: rgba(234, 9, 23, 0.12);
+  border: 1px solid rgba(234, 9, 23, 0.45);
+  color: #f7eee2;
+  font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.hero__cta:hover {
+  background: #ea0917;
+  color: #fff;
+  border-color: #ea0917;
+  box-shadow: 0 0 22px rgba(234, 9, 23, 0.55);
+  transform: translateY(-2px);
+}
+
+.hero__cta-arrow {
+  transition: transform 0.25s ease;
+}
+
+.hero__cta:hover .hero__cta-arrow {
+  transform: translateY(3px);
+}
+
+/* ==============================================================
+   MINIMAL BOTTOM SCROLL CUE
+   ============================================================== */
+
+.hero__scroll-cue {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.3s ease;
+}
+
+.hero__scroll-cue:hover {
+  opacity: 1;
+}
+
+.scroll-cue__text {
+  font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: rgba(247, 238, 226, 0.65);
+  text-transform: uppercase;
+}
+
+.scroll-cue__line {
+  width: 1px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-cue__indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  background: #ea0917;
+  box-shadow: 0 0 8px #ea0917;
+  animation: scrollDown 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+}
+
+@keyframes scrollDown {
+  0% { transform: translateY(-100%); }
+  50% { transform: translateY(150%); }
+  100% { transform: translateY(150%); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero__content {
+    padding: 0 32px 50px 32px;
+    max-width: 440px;
+  }
+  .hero__hotspot {
+    right: 5%;
+    width: 28%;
+    top: 22%;
+    height: 74%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero__content {
+    padding: 0 24px 44px 24px;
+    max-width: 100%;
+  }
+  .hero__title {
+    font-size: 2.1rem;
+  }
+  .hero__subtitle {
+    font-size: 0.88rem;
+  }
+  .hero__hotspot {
+    right: 0;
+    width: 45%;
+    top: 20%;
+    height: 76%;
+  }
+}
