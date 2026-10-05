@@ -17,23 +17,23 @@ function ResponsiveCamera() {
       const isShortLandscape = !isPortrait && h <= 560;
 
       if (w <= 480 && isPortrait) {
-        // Small/standard mobile portrait
-        camera.position.set(0, 0.05, 8.8);
-        camera.lookAt(0, 0.05, 0);
+        // Small/standard mobile portrait — close, impactful hero zoom
+        camera.position.set(0, 0.08, 6.4);
+        camera.lookAt(0, 0.08, 0);
         camera.fov = 46;
       } else if (w <= 840 && isPortrait) {
         // Larger mobile / compact tablet portrait
-        camera.position.set(0, 0.05, 8.7);
-        camera.lookAt(0, 0.05, 0);
+        camera.position.set(0, 0.06, 6.8);
+        camera.lookAt(0, 0.06, 0);
         camera.fov = 44;
       } else if (w <= 1024 && isPortrait) {
         // Tablet portrait (iPad 768x1024, 820x1180, 1024x1366)
-        camera.position.set(0, 0.04, 8.6);
-        camera.lookAt(0, 0.04, 0);
+        camera.position.set(0, 0.05, 7.2);
+        camera.lookAt(0, 0.05, 0);
         camera.fov = 43;
       } else if (isShortLandscape) {
         // Mobile landscape (e.g. 667x375, 844x390, 932x430)
-        camera.position.set(0.04, 0.02, 8.6);
+        camera.position.set(0.04, 0.02, 7.8);
         camera.lookAt(0.04, 0.02, 0);
         camera.fov = 42;
       } else {

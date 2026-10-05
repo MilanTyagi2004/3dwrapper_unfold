@@ -347,25 +347,25 @@
   .packet-canvas-stage {
     flex: none;
     width: 100%;
-    height: clamp(170px, 32vh, 260px);
-    min-height: 170px;
-    max-height: 280px;
-    margin-bottom: 0.1rem;
+    height: clamp(280px, 44vh, 390px);
+    min-height: 280px;
+    max-height: 420px;
+    margin-bottom: 0.3rem;
   }
 
   .editorial-story-panel {
     flex: none;
     max-width: 100%;
     width: 100%;
-    min-height: 170px;
-    height: 170px;
+    min-height: 165px;
+    height: 165px;
     padding-left: 0;
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     position: relative;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
   }
 
   .editorial-content-block {
