@@ -7,3 +7,41 @@
   overflow-x: hidden;
   position: relative;
 }
+
+.below-hero-wrapper {
+  position: relative;
+  width: 100%;
+  background:
+    /* Layer 1: Dark center vignette to preserve text & 3D object contrast */
+    radial-gradient(ellipse 75% 50% at 50% 30%, rgba(2, 1, 2, 0.65) 0%, transparent 85%),
+    radial-gradient(ellipse 85% 60% at 50% 75%, rgba(2, 1, 2, 0.85) 0%, transparent 90%),
+    /* Layer 2: Subtle sleek dark-red rim along the left edge running full height */
+    linear-gradient(90deg, rgba(190, 12, 24, 0.18) 0%, rgba(130, 8, 16, 0.05) 3%, transparent 8%),
+    /* Layer 3: Subtle sleek dark-red rim along the right edge running full height */
+    linear-gradient(270deg, rgba(190, 12, 24, 0.18) 0%, rgba(130, 8, 16, 0.05) 3%, transparent 8%),
+    /* Layer 4: Organic subtle edge blooms - toned down in founder card (75%) */
+    radial-gradient(ellipse 20% 50% at 0% 30%, rgba(185, 12, 24, 0.16) 0%, transparent 80%),
+    radial-gradient(ellipse 20% 50% at 100% 30%, rgba(185, 12, 24, 0.16) 0%, transparent 80%),
+    radial-gradient(ellipse 20% 50% at 0% 75%, rgba(185, 12, 24, 0.07) 0%, transparent 80%),
+    radial-gradient(ellipse 20% 50% at 100% 75%, rgba(185, 12, 24, 0.07) 0%, transparent 80%),
+    /* Layer 5: Vertical progression - upper half (packet) untouched; lower half (founder card) toned down */
+    linear-gradient(
+      180deg,
+      #020102 0%,
+      #090103 6%,
+      #180105 18%,
+      #2c020a 34%,
+      #35030c 50%,
+      #270209 65%,
+      #180106 78%,
+      #0e0104 90%,
+      #060002 100%
+    );
+}
+
+@media (max-width: 768px) {
+  .below-hero-wrapper {
+    min-height: auto;
+    height: auto;
+  }
+}

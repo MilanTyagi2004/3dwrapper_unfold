@@ -432,9 +432,6 @@ const DemonicStrips = () => {
         {/* 1. TOP BRANDING */}
         <header className="strips-top-brand">
           <span className="brand-eyebrow">ORAL ENERGY STRIP · 45MG CAFFEINE</span>
-          <h2 className="brand-title">
-            DEMONIC <span className="title-accent">FUEL</span>
-          </h2>
           <p className="brand-tagline">No water. No can. No waiting.</p>
         </header>
 

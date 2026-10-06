@@ -658,7 +658,7 @@ export default function EmailCollect() {
                   </label>
                   <input
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="WE WON'T SPAM YOU"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="ec__input"

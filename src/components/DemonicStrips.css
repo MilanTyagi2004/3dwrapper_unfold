@@ -3,7 +3,7 @@
   width: 100%;
   height: 100vh;
   min-height: 100vh;
-  background: radial-gradient(circle at 45% 48%, #160408 0%, #0a0103 45%, #020001 100%);
+  background: transparent;
   overflow: hidden;
   color: #ffffff;
 }
@@ -16,7 +16,7 @@
   transform: translate(-50%, -50%);
   width: min(650px, 90vw);
   height: min(650px, 90vw);
-  background: radial-gradient(circle, rgba(255, 0, 60, 0.07) 0%, rgba(2, 132, 199, 0.03) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(120, 0, 20, 0.08) 0%, transparent 70%);
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
@@ -143,8 +143,8 @@
   pointer-events: none;
   will-change: opacity, transform, filter;
   transition: opacity 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.52s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.52s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .editorial-content-block.is-active {
@@ -153,8 +153,8 @@
   filter: blur(0);
   pointer-events: auto;
   transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .editorial-content-block.is-prev {
@@ -163,8 +163,8 @@
   filter: blur(4px);
   pointer-events: none;
   transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Fluid micro-stagger for silky Apple-grade editorial entrance */
@@ -175,7 +175,7 @@
   transform: translateY(8px);
   opacity: 0.85;
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .editorial-content-block.is-active .editorial-eyebrow,
@@ -300,8 +300,8 @@
   }
 }
 
-/* 2. Mobile Portrait (Smartphones <= 699px portrait, <= 600px) */
-@media (max-width: 699px) and (orientation: portrait), (max-width: 600px) {
+/* 2. Mobile (Smartphones & compact tablets <= 768px) */
+@media (max-width: 768px) {
   .strips-section {
     height: auto;
     min-height: auto;
@@ -592,6 +592,3 @@
     gap: 0.8rem;
   }
 }
-
-
-

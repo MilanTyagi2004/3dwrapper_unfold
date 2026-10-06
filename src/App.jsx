@@ -10,8 +10,10 @@ function App() {
     <div className="app-container">
       <Navbar />
       <HeroSection />
-      <DemonicStrips />
-      <EmailCollect />
+      <div className="below-hero-wrapper">
+        <DemonicStrips />
+        <EmailCollect />
+      </div>
     </div>
   )
 }
