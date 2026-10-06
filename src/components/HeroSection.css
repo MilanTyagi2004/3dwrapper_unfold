@@ -292,52 +292,83 @@
 @media (max-width: 768px) {
   .hero-section {
     min-height: 100svh;
-    height: 100svh;
-    justify-content: flex-end;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: calc(100vw * 9 / 16 + 14px);
+    padding-bottom: clamp(32px, 6vh, 48px);
+    background: #030102;
+    box-sizing: border-box;
   }
 
-  /* Full Laboratory View on Mobile: Keep entire widescreen lab visible instead of severe cropping */
+  /* Full Laboratory View with Worker: Spans full width from top: 0 under transparent navbar */
   .hero__video-container {
-    height: 50vh;
-    top: 48px;
-    bottom: auto;
-    mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    z-index: 1;
   }
 
   .hero__video {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     min-width: 100%;
-    min-height: 0;
-    object-fit: contain;
-    object-position: center center;
+    min-height: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center top;
+    background: #030102;
+    mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 86%, transparent 100%);
+  }
+
+  /* Atmospheric transition from lab floor to editorial content */
+  .hero__vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background:
+      radial-gradient(ellipse at 50% 25%, transparent 35%, rgba(3, 1, 2, 0.45) 85%, #030102 100%),
+      linear-gradient(180deg, rgba(3, 1, 2, 0.3) 0%, transparent 16%, rgba(3, 1, 2, 0.15) 35%, rgba(3, 1, 2, 0.95) 70%, #030102 100%);
   }
 
   .hero__content {
-    padding: 0 20px 28px 20px;
-    max-width: 100%;
+    position: relative;
     z-index: 10;
+    padding: 0 20px;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .hero__title {
-    font-size: clamp(1.8rem, 6.8vw, 2.3rem);
+    font-size: clamp(1.9rem, 7.2vw, 2.5rem);
     margin-bottom: 8px;
   }
 
   .hero__subtitle {
-    font-size: 0.84rem;
-    line-height: 1.45;
-    margin-bottom: 16px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
     max-width: 100%;
   }
 
   .hero__hotspot {
-    top: 48px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 48vh;
+    position: absolute;
+    top: 40px;
+    right: 3%;
+    width: 33%;
+    height: calc(100vw * 9 / 16 - 50px);
+    z-index: 10;
   }
 
   /* Eliminate collision: On mobile, CTA button provides clear scroll action; hide redundant floating scroll cue */
