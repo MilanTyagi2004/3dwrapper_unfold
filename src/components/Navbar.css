@@ -94,7 +94,6 @@
   line-height: 1;
   margin: 0;
   display: block;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
 }
 
 .nav__tagline {
@@ -251,9 +250,7 @@
   height: 32px;
   padding: 0 16px;
   box-sizing: border-box;
-  background: rgba(3, 1, 2, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: transparent;
   border: 1px solid rgba(234, 9, 23, 0.5);
   border-radius: 2px;
   color: #FFFFE1;
@@ -266,7 +263,6 @@
   line-height: 1;
   transition: all 0.22s ease;
   white-space: nowrap;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .nav__btn-arrow {
