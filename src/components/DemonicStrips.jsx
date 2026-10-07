@@ -4,6 +4,7 @@ import { Environment } from '@react-three/drei';
 import gsap from 'gsap';
 import { PouchModel } from './Packet3D';
 import { CigaretteBox } from './CigaretteBox';
+import LiquidHeadline from './LiquidHeadline';
 import './DemonicStrips.css';
 
 function ResponsiveCamera() {
@@ -513,14 +514,8 @@ const DemonicStrips = () => {
                     <span>{stage.eyebrow}</span>
                   </div>
 
-                  {/* Large Editorial Headline */}
-                  <h3 className="editorial-headline">
-                    {stage.headline.split('\n').map((line, i) => (
-                      <span key={i} className="headline-line">
-                        {line}
-                      </span>
-                    ))}
-                  </h3>
+                  {/* Large Editorial Headline with Liquid Water Displacement Interaction */}
+                  <LiquidHeadline headline={stage.headline} isActive={isActive} />
 
                   {/* Short Supporting Paragraph */}
                   <p className="editorial-description">

@@ -4,18 +4,133 @@ import './HeroSection.css';
 export default function HeroSection() {
   const [isAwakened, setIsAwakened] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const heroRef = useRef(null);
   const idleVideoRef = useRef(null);
   const awakenVideoRef = useRef(null);
 
   const resetTimeoutRef = useRef(null);
   const endHoldTimeoutRef = useRef(null);
 
+  const isInViewRef = useRef(true);
+  const isAwakenedRef = useRef(false);
+  const isMutedRef = useRef(true);
+
+  // Unmute and play ambient audio with volume
+  const unmuteAndPlay = () => {
+    isMutedRef.current = false;
+    setIsMuted(false);
+
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = isAwakenedRef.current;
+      idleVideoRef.current.volume = 0.85;
+      idleVideoRef.current.play().catch(() => {});
+    }
+
+    if (awakenVideoRef.current) {
+      awakenVideoRef.current.muted = !isAwakenedRef.current;
+      awakenVideoRef.current.volume = 0.9;
+    }
+  };
+
+  // Mute audio completely
+  const muteAudio = () => {
+    isMutedRef.current = true;
+    setIsMuted(true);
+
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = true;
+    }
+    if (awakenVideoRef.current) {
+      awakenVideoRef.current.muted = true;
+    }
+  };
+
   useEffect(() => {
-    idleVideoRef.current?.play().catch(() => {});
+    isAwakenedRef.current = isAwakened;
+    if (!isMutedRef.current && isInViewRef.current) {
+      if (idleVideoRef.current) idleVideoRef.current.muted = isAwakened;
+      if (awakenVideoRef.current) awakenVideoRef.current.muted = !isAwakened;
+    }
+  }, [isAwakened]);
+
+  useEffect(() => {
+    // 1. Initial attempt: try unmuted autoplay on load
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = false;
+      idleVideoRef.current.volume = 0.85;
+      idleVideoRef.current.play()
+        .then(() => {
+          isMutedRef.current = false;
+          setIsMuted(false);
+        })
+        .catch(() => {
+          // Autoplay blocked without user gesture: safely start muted
+          if (idleVideoRef.current) {
+            idleVideoRef.current.muted = true;
+            idleVideoRef.current.play().catch(() => {});
+          }
+          isMutedRef.current = true;
+          setIsMuted(true);
+        });
+    }
+
     if (awakenVideoRef.current) {
       awakenVideoRef.current.currentTime = 0;
+      awakenVideoRef.current.muted = true;
     }
+
+    // 2. Unmute on the first interaction (click, tap, wheel, scroll, keypress)
+    const handleUserInteraction = () => {
+      if (isInViewRef.current) {
+        unmuteAndPlay();
+      }
+    };
+
+    const interactionEvents = ['click', 'pointerdown', 'touchstart', 'keydown', 'wheel'];
+    interactionEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserInteraction, { passive: true });
+    });
+
+    // 3. Viewport IntersectionObserver: Automatically MUTE when scrolled away!
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        const inView = Boolean(entry.isIntersecting && entry.intersectionRatio > 0.05);
+        isInViewRef.current = inView;
+
+        if (!inView) {
+          // Hero went off screen -> MUTE!
+          muteAudio();
+        } else {
+          // Hero back on screen -> UNMUTE!
+          unmuteAndPlay();
+        }
+      },
+      { threshold: [0, 0.05, 0.2] }
+    );
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+
+    // 4. Tab visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        muteAudio();
+      } else if (isInViewRef.current) {
+        unmuteAndPlay();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
+      interactionEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserInteraction);
+      });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      observer.disconnect();
       if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
       if (endHoldTimeoutRef.current) clearTimeout(endHoldTimeoutRef.current);
     };
@@ -28,13 +143,22 @@ export default function HeroSection() {
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
     if (endHoldTimeoutRef.current) clearTimeout(endHoldTimeoutRef.current);
 
+    // Mute idle audio so awaken video plays cleanly
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = true;
+    }
+    if (awakenVideoRef.current) {
+      awakenVideoRef.current.muted = isMutedRef.current;
+      awakenVideoRef.current.volume = 0.9;
+    }
+
     const playPromise = awakenVideoRef.current.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
           setIsAwakened(true);
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   };
 
@@ -45,6 +169,14 @@ export default function HeroSection() {
   const handleAwakenEnded = () => {
     // Video has naturally returned the worker's gaze back down to the strips
     setIsAwakened(false);
+
+    if (awakenVideoRef.current) {
+      awakenVideoRef.current.muted = true;
+    }
+    if (idleVideoRef.current) {
+      idleVideoRef.current.muted = isMutedRef.current;
+    }
+
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
     resetTimeoutRef.current = setTimeout(() => {
       if (awakenVideoRef.current) {
@@ -59,16 +191,16 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="hero-section" id="hero">
-      {/* Background Video Layer 1: Seamless Ping-Pong Idle Loop */}
+    <section className="hero-section" id="hero" ref={heroRef}>
+      {/* Background Video Layer 1: Seamless Ping-Pong Idle Loop with Demonic Audio */}
       <div className="hero__video-container">
         <video
           ref={idleVideoRef}
-          src="/assets/brand/demon_worker_idle.mp4?v=vivid_smooth"
+          src="/assets/brand/demon_worker_idle.mp4?v=ambient_audio_v3"
           className="hero__video hero__video--idle"
           autoPlay
           loop
-          muted
+          muted={isMuted}
           playsInline
           preload="auto"
         />
@@ -76,9 +208,9 @@ export default function HeroSection() {
         {/* Background Video Layer 2: Natural Awaken & Return Sequence */}
         <video
           ref={awakenVideoRef}
-          src="/assets/brand/demon_worker_awaken_pingpong.mp4?v=natural_return"
+          src="/assets/brand/demon_worker_awaken_pingpong.mp4?v=ambient_audio_v3"
           className={`hero__video hero__video--awaken ${isAwakened ? 'hero__video--active' : ''}`}
-          muted
+          muted={isAwakened ? isMuted : true}
           playsInline
           preload="auto"
           onEnded={handleAwakenEnded}

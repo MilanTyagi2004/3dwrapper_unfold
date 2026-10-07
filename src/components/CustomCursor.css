@@ -1,0 +1,97 @@
+/* ==============================================================
+   DEMONIC FUEL — CUSTOM CURSOR INDICATOR
+   Always-Active, Cinematic, High-Performance (Hardware-Accelerated)
+   ============================================================== */
+
+/* Fixed root container overlay */
+.custom-cursor-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999999;
+  overflow: hidden;
+}
+
+/* 1. Crisp Center Dot (5.5px) */
+.custom-cursor__dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 5.5px;
+  height: 5.5px;
+  margin-top: -2.75px;
+  margin-left: -2.75px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 0 5px #ffffff,
+    0 0 12px rgba(255, 32, 53, 0.9),
+    0 0 22px rgba(234, 9, 23, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.15s ease;
+}
+
+/* 2. Inertial Delicate Ring (24px) */
+.custom-cursor__ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  margin-left: -12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 32, 53, 0.65);
+  background: radial-gradient(circle, rgba(234, 9, 23, 0.14) 0%, transparent 72%);
+  box-shadow:
+    0 0 10px rgba(234, 9, 23, 0.35),
+    inset 0 0 6px rgba(255, 32, 53, 0.2);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.custom-cursor__ring--interactive {
+  border-color: rgba(255, 60, 80, 0.95);
+  background: radial-gradient(circle, rgba(255, 32, 53, 0.22) 0%, transparent 75%);
+  box-shadow:
+    0 0 16px rgba(255, 32, 53, 0.6),
+    inset 0 0 10px rgba(255, 60, 80, 0.35);
+}
+
+/* 3. Lagging Atmospheric Trail (34px - persistent living red aura) */
+.custom-cursor__trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  margin-top: -17px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(234, 9, 23, 0.32) 0%, rgba(234, 9, 23, 0.12) 55%, transparent 78%);
+  filter: blur(3px);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.25s ease;
+}
+
+/* Hide default cursor completely across ALL elements on desktop */
+@media (pointer: fine) and (hover: hover) {
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
+}
+
+/* Disable completely on mobile / touch devices */
+@media (pointer: coarse), (hover: none) {
+  .custom-cursor-root {
+    display: none !important;
+  }
+}

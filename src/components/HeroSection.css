@@ -6,8 +6,9 @@
 .hero-section {
   position: relative;
   width: 100vw;
-  height: 100vh;
-  min-height: 640px;
+  /* Fluid proportional height: scales down smoothly as screen width gets smaller, capped at 100vh on widescreen */
+  height: min(100vh, calc(100vw * 0.5625 + 60px));
+  min-height: min(560px, 100vh);
   overflow: hidden;
   background: #030102;
   box-sizing: border-box;
@@ -30,12 +31,10 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
   transform: translate(-50%, -50%);
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   object-position: center center;
   background: #030102;
 }
@@ -288,32 +287,114 @@
   }
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .hero__content {
-    padding: 0 32px 50px 32px;
-    max-width: 440px;
+/* ==============================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ============================================================== */
+
+/* ── iPad & Tablet Viewports (641px to 1024px) ── */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hero-section {
+    position: relative;
+    width: 100vw;
+    /* Hero section shrinks down proportionally with screen size instead of fixed 100vh / 1180px */
+    height: clamp(480px, calc(100vw * 0.5625 + 80px), 680px);
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+    background: #030102;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-sizing: border-box;
   }
 
+  /* Full Laboratory View: Keep both scientists and throne demon in frame */
+  .hero__video-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .hero__video {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: auto;
+    min-width: 100%;
+    min-height: auto;
+    object-fit: contain;
+    background: #030102;
+  }
+
+  /* Atmospheric Vignette: Softly blend top ceiling and bottom floor into darkness */
+  .hero__vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(3, 1, 2, 0.5) 75%, #030102 98%),
+      linear-gradient(180deg, rgba(3, 1, 2, 0.75) 0%, transparent 18%, transparent 55%, rgba(3, 1, 2, 0.85) 85%, #030102 100%);
+  }
+
+  /* Interactive Hotspot for Demon Worker on iPad */
   .hero__hotspot {
+    position: absolute;
     right: 5%;
-    width: 28%;
-    top: 22%;
-    height: 74%;
+    top: 24%;
+    width: 25%;
+    height: 42%;
+    z-index: 10;
+  }
+
+  /* Content Overlay: Anchored at bottom-left on reflective floor */
+  .hero__content {
+    position: relative;
+    z-index: 10;
+    padding: 0 clamp(24px, 4vw, 42px) clamp(38px, 5vw, 54px) clamp(24px, 4vw, 42px);
+    max-width: 500px;
+    pointer-events: auto;
+  }
+
+  .hero__title {
+    font-size: clamp(2.2rem, 4.4vw, 3.2rem);
+    margin-bottom: 10px;
+  }
+
+  .hero__subtitle {
+    font-size: clamp(0.88rem, 1.3vw, 0.95rem);
+    line-height: 1.5;
+    max-width: 440px;
+    margin-bottom: 18px;
+  }
+
+  /* Scroll cue visible at bottom */
+  .hero__scroll-cue {
+    display: flex !important;
+    bottom: clamp(14px, 2.2vh, 22px);
   }
 }
 
-@media (max-width: 768px) {
+/* ── Mobile Smartphones (<= 640px) ── */
+@media (max-width: 640px) {
   .hero-section {
     min-height: auto;
     height: auto;
     justify-content: flex-start;
     padding-top: 56px;
-    padding-bottom: 48px;
+    padding-bottom: 36px;
     box-sizing: border-box;
   }
 
-  /* Full Laboratory View on Mobile: Keep entire widescreen lab visible without letterboxing */
+  /* Full Laboratory View on Mobile - Strictly 16:9 Never Zoomed */
   .hero__video-container {
     position: relative;
     top: auto;
@@ -323,8 +404,9 @@
     width: 100%;
     height: auto;
     aspect-ratio: 16 / 9;
-    mask-image: linear-gradient(180deg, #000 85%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, #000 85%, transparent 100%);
+    background: #030102;
+    mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
   }
 
   .hero__video {
@@ -333,11 +415,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    min-width: 100%;
-    min-height: 100%;
     transform: none;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center center;
+    background: #030102;
   }
 
   .hero__hotspot {
@@ -369,7 +450,6 @@
     max-width: 100%;
   }
 
-  /* Eliminate collision: On mobile, CTA button provides clear scroll action; hide redundant floating scroll cue */
   .hero__scroll-cue {
     display: none !important;
   }

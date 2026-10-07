@@ -13,6 +13,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeCanvas } from 'qrcode.react'
+import LiquidHeadline from '../LiquidHeadline'
 import './EmailCollect.css'
 
 /* ── Constants & Helpers ───────────────────────────────── */
@@ -609,8 +610,18 @@ export default function EmailCollect() {
         {/* Section Header */}
         <div className="ec__header">
           <div className="ec__tagline-badge">§02 // FOR THE OBSESSED</div>
-          <h2 className="ec__gothic-title">Summon Your Fuel</h2>
-          <h3 className="ec__headline">CLAIM YOUR FOUNDER CARD</h3>
+          <LiquidHeadline
+            headline="Summon Your Fuel"
+            as="h2"
+            className="ec__gothic-title"
+            isActive={true}
+          />
+          <LiquidHeadline
+            headline="CLAIM YOUR FOUNDER CARD"
+            as="h3"
+            className="ec__headline"
+            isActive={true}
+          />
           <p className="ec__desc">
             Fuel for the locked-in state. Built for those who refuse autopilot.
           </p>

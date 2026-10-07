@@ -37,7 +37,7 @@
 .ec {
   position: relative;
   width: 100%;
-  padding: clamp(1.2rem, 3.2vw, 2.6rem) clamp(1rem, 4vw, 2rem) clamp(3.5rem, 7vw, 5.5rem);
+  padding: clamp(1.2rem, 3.2vw, 2.6rem) clamp(1rem, 4vw, 2rem) clamp(1.4rem, 2.5vw, 2rem);
   background: transparent;
   overflow: hidden;
   box-sizing: border-box;

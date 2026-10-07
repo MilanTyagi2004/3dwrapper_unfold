@@ -1,0 +1,47 @@
+/* ==============================================================
+   LiquidHeadline.css — Realistic Water / Liquid Typography Displacement
+   ============================================================== */
+
+.liquid-headline-container {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.liquid-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.liquid-word:not(:last-child) {
+  margin-right: 0.32em;
+}
+
+.liquid-char {
+  display: inline-block;
+  will-change: transform;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.liquid-space {
+  display: inline-block;
+  width: 0.32em;
+  pointer-events: none;
+}
+
+/* Ensure gothic title gradient clip on child characters in Founder Section */
+.ec__gothic-title.liquid-headline-container .liquid-char {
+  background: linear-gradient(180deg, #ffffff 0%, #ede6d6 55%, #8f887b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Disable on mobile & touchscreens */
+@media (pointer: coarse), (hover: none) {
+  .liquid-char {
+    will-change: auto !important;
+    transform: none !important;
+  }
+}
