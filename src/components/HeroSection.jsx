@@ -178,11 +178,9 @@ export default function HeroSection() {
 
     const enforceSeamlessLoop = () => {
       if (video.duration && !video.paused) {
-        // If we are within 0.1 seconds of the end, instantly snap back to the start
-        // This bypasses the browser's native loop delay/black flash
-        if (video.duration - video.currentTime <= 0.15) {
-          video.currentTime = 0.05; // slightly after 0 to ensure play continues
-          // We don't fade, just snap instantly to feel like a continuous infinite loop
+        // Skip the last 0.85 seconds to bypass the baked-in black frames from the video cutter
+        if (video.duration - video.currentTime <= 0.85) {
+          video.currentTime = 0.05; // instantly snap back to start
         }
       }
       animationFrameId = requestAnimationFrame(enforceSeamlessLoop);
