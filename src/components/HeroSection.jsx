@@ -185,8 +185,19 @@ export default function HeroSection() {
 
     const enforceSeamlessLoop = () => {
       if (video.duration && !video.paused) {
+        const timeLeft = video.duration - video.currentTime;
+        
+        // Idle Slow-Mo Effect: Slow down time during the loop point for cinematic feel
+        if (timeLeft <= 0.9) {
+          if (video.playbackRate !== 0.5) video.playbackRate = 0.5;
+        } else if (video.currentTime <= 0.8) {
+          if (video.playbackRate !== 0.6) video.playbackRate = 0.6;
+        } else {
+          if (video.playbackRate !== 1.0) video.playbackRate = 1.0;
+        }
+
         // Skip the last 0.85 seconds to bypass the baked-in black frames from the video cutter
-        if (video.duration - video.currentTime <= 0.85) {
+        if (timeLeft <= 0.85) {
           video.currentTime = 0.05; // instantly snap back to start
         }
       }
@@ -217,28 +228,28 @@ export default function HeroSection() {
   }, []);
 
   const handleWorkerEnter = (side, e) => {
-    // Fix for Mobile/iOS: Touch devices fire pointerenter BEFORE click, but pointerenter lacks 
-    // user-gesture permissions to play unmuted video. This caused the video to fail playing 
-    // but state to update, breaking the subsequent click. We ignore touch hover and rely on click.
+    // Fix for Mobile/iOS: Ignore touch hover
     if (e && e.type === 'pointerenter' && e.pointerType !== 'mouse') return;
 
     setIsHovered(true);
     hasUserUnlockedRef.current = true;
     
-    // If a side is already awakened, ignore
     if (awakenedSide || !leftAwakenVideoRef.current || !rightAwakenVideoRef.current) return;
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
 
-    // Mute idle audio so awaken video plays cleanly
+    // Mute idle audio and apply SLOW-MO to idle video instead of freezing it.
+    // This creates a buttery cinematic crossfade!
     if (idleVideoRef.current) {
       idleVideoRef.current.muted = true;
+      idleVideoRef.current.playbackRate = 0.4; // Slow motion during fade
     }
 
     const targetVideo = side === 'left' ? leftAwakenVideoRef.current : rightAwakenVideoRef.current;
     
     targetVideo.muted = false;
     targetVideo.volume = 0.9;
+    targetVideo.playbackRate = 0.6; // Start awaken video in slow motion too
 
     const playPromise = targetVideo.play();
     if (playPromise !== undefined) {
@@ -247,9 +258,14 @@ export default function HeroSection() {
           setAwakenedSide(side);
           isMutedRef.current = false;
           setIsMuted(false);
+          
+          // Restore normal speed after the crossfade completes
+          setTimeout(() => {
+            if (targetVideo) targetVideo.playbackRate = 1.0;
+            if (idleVideoRef.current) idleVideoRef.current.playbackRate = 1.0;
+          }, 450);
         })
         .catch(() => {
-          // Fallback if browser still blocks audio: play muted to prevent UI freeze
           targetVideo.muted = true;
           targetVideo.play().catch(()=>{});
           setAwakenedSide(side);
@@ -262,23 +278,48 @@ export default function HeroSection() {
   };
 
   const handleAwakenEnded = () => {
+    // If we've already started the end transition, do nothing
+    if (awakenedSideRef.current === null) return;
+    
     setAwakenedSide(null);
 
+    // Apply slow-mo during the fade-out transition
     if (leftAwakenVideoRef.current) {
       leftAwakenVideoRef.current.muted = true;
+      leftAwakenVideoRef.current.playbackRate = 0.5;
     }
     if (rightAwakenVideoRef.current) {
       rightAwakenVideoRef.current.muted = true;
+      rightAwakenVideoRef.current.playbackRate = 0.5;
     }
+    
     if (idleVideoRef.current) {
       idleVideoRef.current.muted = isMutedRef.current;
+      idleVideoRef.current.playbackRate = 0.6; // Smoothly ease back into idle
     }
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
     resetTimeoutRef.current = setTimeout(() => {
-      if (leftAwakenVideoRef.current) leftAwakenVideoRef.current.currentTime = 0;
-      if (rightAwakenVideoRef.current) rightAwakenVideoRef.current.currentTime = 0;
-    }, 350);
+      if (leftAwakenVideoRef.current) {
+        leftAwakenVideoRef.current.currentTime = 0;
+        leftAwakenVideoRef.current.playbackRate = 1.0;
+      }
+      if (rightAwakenVideoRef.current) {
+        rightAwakenVideoRef.current.currentTime = 0;
+        rightAwakenVideoRef.current.playbackRate = 1.0;
+      }
+      if (idleVideoRef.current) {
+        idleVideoRef.current.playbackRate = 1.0;
+      }
+    }, 450);
+  };
+
+  const handleTimeUpdate = (e) => {
+    const video = e.target;
+    // Trigger transition 0.4 seconds BEFORE the video physically ends.
+    if (video.duration && video.duration - video.currentTime <= 0.4) {
+      handleAwakenEnded();
+    }
   };
 
   const scrollToStrips = (e) => {
@@ -309,7 +350,7 @@ export default function HeroSection() {
           muted={awakenedSide !== 'left' || isMuted}
           playsInline
           preload="auto"
-          onEnded={handleAwakenEnded}
+          onTimeUpdate={handleTimeUpdate}
         />
 
         {/* Awaken Video: Right Worker */}
@@ -320,7 +361,7 @@ export default function HeroSection() {
           muted={awakenedSide !== 'right' || isMuted}
           playsInline
           preload="auto"
-          onEnded={handleAwakenEnded}
+          onTimeUpdate={handleTimeUpdate}
         />
       </div>
 

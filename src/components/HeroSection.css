@@ -49,14 +49,14 @@
 .hero__video--awaken {
   z-index: 2;
   opacity: 0;
-  transition: opacity 0.3s ease-out;
+  transition: opacity 0.4s ease-in-out;
   pointer-events: none;
   will-change: opacity;
 }
 
 .hero__video--active {
   opacity: 1;
-  transition: opacity 0.25s ease-in;
+  transition: opacity 0.4s ease-in-out;
 }
 
 /* Cinematic Atmospheric Vignette (Clear top for navbar, soft shadow for bottom typography) */
