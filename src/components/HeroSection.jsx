@@ -228,28 +228,17 @@ export default function HeroSection() {
 
   return (
     <section className="hero-section" id="hero" ref={heroRef}>
-      {/* Background Video Layer 1: Seamless Ping-Pong Idle Loop with Demonic Audio */}
+      {/* Background Video */}
       <div className="hero__video-container">
         <video
           ref={idleVideoRef}
-          src="/assets/brand/demon_worker_idle.mp4?v=ambient_audio_v4"
+          src="/assets/brand/hero_bg_video.mp4"
           className="hero__video hero__video--idle"
           autoPlay
           loop
           muted
           playsInline
           preload="auto"
-        />
-
-        {/* Background Video Layer 2: Natural Awaken & Return Sequence */}
-        <video
-          ref={awakenVideoRef}
-          src="/assets/brand/demon_worker_awaken_pingpong.mp4?v=ambient_audio_v4"
-          className={`hero__video hero__video--awaken ${isAwakened ? 'hero__video--active' : ''}`}
-          muted={!isAwakened || isMuted}
-          playsInline
-          preload="auto"
-          onEnded={handleAwakenEnded}
         />
       </div>
 
