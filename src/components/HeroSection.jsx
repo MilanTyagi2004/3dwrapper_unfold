@@ -2,19 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import './HeroSection.css';
 
 export default function HeroSection() {
-  const [isAwakened, setIsAwakened] = useState(false);
+  const [awakenedSide, setAwakenedSide] = useState(null); // 'left' | 'right' | null
   const [isHovered, setIsHovered] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
   const heroRef = useRef(null);
   const idleVideoRef = useRef(null);
-  const awakenVideoRef = useRef(null);
+  const leftAwakenVideoRef = useRef(null);
+  const rightAwakenVideoRef = useRef(null);
 
   const resetTimeoutRef = useRef(null);
-  const endHoldTimeoutRef = useRef(null);
 
   const isInViewRef = useRef(true);
-  const isAwakenedRef = useRef(false);
+  const awakenedSideRef = useRef(null);
   const isMutedRef = useRef(true);
   const hasUserUnlockedRef = useRef(false);
   const isInitialMountRef = useRef(true);
@@ -25,14 +25,18 @@ export default function HeroSection() {
     setIsMuted(false);
 
     if (idleVideoRef.current) {
-      idleVideoRef.current.muted = isAwakenedRef.current;
+      idleVideoRef.current.muted = awakenedSideRef.current !== null;
       idleVideoRef.current.volume = 0.85;
       idleVideoRef.current.play().catch(() => {});
     }
 
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.muted = !isAwakenedRef.current;
-      awakenVideoRef.current.volume = 0.9;
+    if (leftAwakenVideoRef.current) {
+      leftAwakenVideoRef.current.muted = awakenedSideRef.current !== 'left';
+      leftAwakenVideoRef.current.volume = 0.9;
+    }
+    if (rightAwakenVideoRef.current) {
+      rightAwakenVideoRef.current.muted = awakenedSideRef.current !== 'right';
+      rightAwakenVideoRef.current.volume = 0.9;
     }
   };
 
@@ -44,36 +48,44 @@ export default function HeroSection() {
     if (idleVideoRef.current) {
       idleVideoRef.current.muted = true;
     }
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.muted = true;
+    if (leftAwakenVideoRef.current) {
+      leftAwakenVideoRef.current.muted = true;
+    }
+    if (rightAwakenVideoRef.current) {
+      rightAwakenVideoRef.current.muted = true;
     }
   };
 
-
   useEffect(() => {
-    isAwakenedRef.current = isAwakened;
+    awakenedSideRef.current = awakenedSide;
     if (!isMutedRef.current && isInViewRef.current) {
-      if (idleVideoRef.current) idleVideoRef.current.muted = isAwakened;
-      if (awakenVideoRef.current) awakenVideoRef.current.muted = !isAwakened;
+      if (idleVideoRef.current) idleVideoRef.current.muted = awakenedSide !== null;
+      if (leftAwakenVideoRef.current) leftAwakenVideoRef.current.muted = awakenedSide !== 'left';
+      if (rightAwakenVideoRef.current) rightAwakenVideoRef.current.muted = awakenedSide !== 'right';
     }
-  }, [isAwakened]);
+  }, [awakenedSide]);
 
   useEffect(() => {
     // 1. GUARANTEED IMMEDIATE AUTOPLAY:
-    // Start idle video strictly muted so all browsers instantly autoplay on load with ZERO click!
     if (idleVideoRef.current) {
       idleVideoRef.current.defaultMuted = true;
       idleVideoRef.current.muted = true;
       idleVideoRef.current.play().catch(() => {});
     }
 
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.currentTime = 0;
-      awakenVideoRef.current.defaultMuted = true;
-      awakenVideoRef.current.muted = true;
+    if (leftAwakenVideoRef.current) {
+      leftAwakenVideoRef.current.currentTime = 0;
+      leftAwakenVideoRef.current.defaultMuted = true;
+      leftAwakenVideoRef.current.muted = true;
     }
 
-    // 2. Safe check: Test if browser permits unmuted audio on cold load (e.g. MEI index allows it)
+    if (rightAwakenVideoRef.current) {
+      rightAwakenVideoRef.current.currentTime = 0;
+      rightAwakenVideoRef.current.defaultMuted = true;
+      rightAwakenVideoRef.current.muted = true;
+    }
+
+    // 2. Safe check: Test if browser permits unmuted audio on cold load
     const testColdAutoplay = () => {
       if (!idleVideoRef.current) return;
       idleVideoRef.current.muted = false;
@@ -81,12 +93,10 @@ export default function HeroSection() {
       const p = idleVideoRef.current.play();
       if (p !== undefined) {
         p.then(() => {
-          // Browser permitted immediate sound!
           hasUserUnlockedRef.current = true;
           isMutedRef.current = false;
           setIsMuted(false);
         }).catch(() => {
-          // Autoplay policy prevented sound: safely keep running muted so video NEVER freezes!
           if (idleVideoRef.current) {
             idleVideoRef.current.muted = true;
             idleVideoRef.current.play().catch(() => {});
@@ -102,7 +112,7 @@ export default function HeroSection() {
       idleEl.addEventListener('playing', testColdAutoplay, { once: true });
     }
 
-    // 3. Global listener: Unmute on first user gesture anywhere on page (click, tap, pointerdown, key)
+    // 3. Global listener: Unmute on first user gesture anywhere on page
     const interactionEvents = ['pointerdown', 'click', 'touchstart', 'keydown', 'mousedown'];
     const handleFirstInteraction = () => {
       hasUserUnlockedRef.current = true;
@@ -118,14 +128,13 @@ export default function HeroSection() {
       window.addEventListener(evt, handleFirstInteraction, { passive: true });
     });
 
-    // 4. Viewport IntersectionObserver: Automatically MUTE when scrolled away, UNMUTE when on screen!
+    // 4. Viewport IntersectionObserver
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
         const inView = Boolean(entry.isIntersecting && entry.intersectionRatio > 0.05);
         isInViewRef.current = inView;
 
-        // Skip on initial mount to avoid premature unmuted playback triggers
         if (isInitialMountRef.current) {
           isInitialMountRef.current = false;
           return;
@@ -134,7 +143,6 @@ export default function HeroSection() {
         if (!inView) {
           muteAudio();
         } else {
-          // Hero is on screen -> automatically play audio!
           unmuteAndPlay();
         }
       },
@@ -145,7 +153,7 @@ export default function HeroSection() {
       observer.observe(heroRef.current);
     }
 
-    // 5. Tab visibility change: Mute when user leaves tab, unmute when returning
+    // 5. Tab visibility change
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         muteAudio();
@@ -165,11 +173,10 @@ export default function HeroSection() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       observer.disconnect();
       if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-      if (endHoldTimeoutRef.current) clearTimeout(endHoldTimeoutRef.current);
     };
   }, []);
 
-  // Infinite seamless loop fix: Prevent browser loop stutter/freeze by instantly seeking to start
+  // Infinite seamless loop fix
   useEffect(() => {
     const video = idleVideoRef.current;
     if (!video) return;
@@ -206,32 +213,33 @@ export default function HeroSection() {
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       cancelAnimationFrame(animationFrameId);
-      video.style.opacity = 1;
     };
   }, []);
 
-  const handleWorkerEnter = () => {
+  const handleWorkerEnter = (side) => {
     setIsHovered(true);
     hasUserUnlockedRef.current = true;
-    if (isAwakened || !awakenVideoRef.current) return;
+    
+    // If a side is already awakened, ignore
+    if (awakenedSide || !leftAwakenVideoRef.current || !rightAwakenVideoRef.current) return;
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-    if (endHoldTimeoutRef.current) clearTimeout(endHoldTimeoutRef.current);
 
     // Mute idle audio so awaken video plays cleanly
     if (idleVideoRef.current) {
       idleVideoRef.current.muted = true;
     }
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.muted = false;
-      awakenVideoRef.current.volume = 0.9;
-    }
 
-    const playPromise = awakenVideoRef.current.play();
+    const targetVideo = side === 'left' ? leftAwakenVideoRef.current : rightAwakenVideoRef.current;
+    
+    targetVideo.muted = false;
+    targetVideo.volume = 0.9;
+
+    const playPromise = targetVideo.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          setIsAwakened(true);
+          setAwakenedSide(side);
           isMutedRef.current = false;
           setIsMuted(false);
         })
@@ -244,11 +252,13 @@ export default function HeroSection() {
   };
 
   const handleAwakenEnded = () => {
-    // Video has naturally returned the worker's gaze back down to the strips
-    setIsAwakened(false);
+    setAwakenedSide(null);
 
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.muted = true;
+    if (leftAwakenVideoRef.current) {
+      leftAwakenVideoRef.current.muted = true;
+    }
+    if (rightAwakenVideoRef.current) {
+      rightAwakenVideoRef.current.muted = true;
     }
     if (idleVideoRef.current) {
       idleVideoRef.current.muted = isMutedRef.current;
@@ -256,10 +266,9 @@ export default function HeroSection() {
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
     resetTimeoutRef.current = setTimeout(() => {
-      if (awakenVideoRef.current) {
-        awakenVideoRef.current.currentTime = 0;
-      }
-    }, 800);
+      if (leftAwakenVideoRef.current) leftAwakenVideoRef.current.currentTime = 0;
+      if (rightAwakenVideoRef.current) rightAwakenVideoRef.current.currentTime = 0;
+    }, 350);
   };
 
   const scrollToStrips = (e) => {
@@ -281,21 +290,52 @@ export default function HeroSection() {
           playsInline
           preload="auto"
         />
+
+        {/* Awaken Video: Left Worker */}
+        <video
+          ref={leftAwakenVideoRef}
+          src="/assets/brand/left_worker.mp4"
+          className={`hero__video hero__video--awaken ${awakenedSide === 'left' ? 'hero__video--active' : ''}`}
+          muted={awakenedSide !== 'left' || isMuted}
+          playsInline
+          preload="auto"
+          onEnded={handleAwakenEnded}
+        />
+
+        {/* Awaken Video: Right Worker */}
+        <video
+          ref={rightAwakenVideoRef}
+          src="/assets/brand/right_worker.mp4"
+          className={`hero__video hero__video--awaken ${awakenedSide === 'right' ? 'hero__video--active' : ''}`}
+          muted={awakenedSide !== 'right' || isMuted}
+          playsInline
+          preload="auto"
+          onEnded={handleAwakenEnded}
+        />
       </div>
 
       {/* Atmospheric Cinematic Overlays */}
       <div className="hero__vignette" />
       <div className="hero__scanlines" />
 
-      {/* Targeted Demon Worker Hotspot (Invisible Interactive Area) */}
+      {/* Targeted Demon Worker Hotspots (Invisible Interactive Areas) */}
       <div
-        className="hero__hotspot"
-        onMouseEnter={handleWorkerEnter}
+        className="hero__hotspot hero__hotspot--left"
+        onMouseEnter={() => handleWorkerEnter('left')}
         onMouseLeave={handleWorkerLeave}
-        onClick={handleWorkerEnter}
+        onClick={() => handleWorkerEnter('left')}
         role="button"
         tabIndex={0}
-        aria-label="Interact with Demon Worker"
+        aria-label="Interact with Left Demon Worker"
+      />
+      <div
+        className="hero__hotspot hero__hotspot--right"
+        onMouseEnter={() => handleWorkerEnter('right')}
+        onMouseLeave={handleWorkerLeave}
+        onClick={() => handleWorkerEnter('right')}
+        role="button"
+        tabIndex={0}
+        aria-label="Interact with Right Demon Worker"
       />
 
       {/* Editorial Content Overlay (Refined, Tech-Noir Aesthetic) */}

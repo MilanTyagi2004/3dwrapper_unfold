@@ -49,14 +49,14 @@
 .hero__video--awaken {
   z-index: 2;
   opacity: 0;
-  transition: opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s ease-out;
   pointer-events: none;
   will-change: opacity;
 }
 
 .hero__video--active {
   opacity: 1;
-  transition: opacity 0.45s ease-in-out;
+  transition: opacity 0.25s ease-in;
 }
 
 /* Cinematic Atmospheric Vignette (Clear top for navbar, soft shadow for bottom typography) */
@@ -92,15 +92,23 @@
 
 .hero__hotspot {
   position: absolute;
-  right: 7%;
   top: 22%;
-  width: 22%;
   height: 74%;
   z-index: 10;
   cursor: pointer;
   outline: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.hero__hotspot--left {
+  left: 7%;
+  width: 22%;
+}
+
+.hero__hotspot--right {
+  right: 7%;
+  width: 22%;
 }
 
 
@@ -348,14 +356,20 @@
       linear-gradient(180deg, rgba(3, 1, 2, 0.6) 0%, transparent 18%, transparent 55%, rgba(3, 1, 2, 0.85) 85%, #030102 100%);
   }
 
-  /* Interactive Hotspot for Demon Worker on iPad */
+  /* Interactive Hotspots for Demon Workers on iPad */
   .hero__hotspot {
     position: absolute;
-    right: 5%;
     top: 18%;
-    width: 25%;
     height: 50%;
     z-index: 10;
+  }
+  .hero__hotspot--left {
+    left: 5%;
+    width: 25%;
+  }
+  .hero__hotspot--right {
+    right: 5%;
+    width: 25%;
   }
 
   /* Content Overlay: Anchored at bottom-left on reflective floor */
@@ -428,11 +442,16 @@
   .hero__hotspot {
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
     height: calc(100vw * 9 / 16);
     z-index: 10;
+  }
+  .hero__hotspot--left {
+    left: 0;
+    width: 50%;
+  }
+  .hero__hotspot--right {
+    right: 0;
+    width: 50%;
   }
 
   .hero__content {
