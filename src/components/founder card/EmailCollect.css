@@ -252,6 +252,44 @@
     0 0 0 1px rgba(234, 9, 23, 0.35);
 }
 
+/* Error / Duplicate Badge */
+.ec__error-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  width: 100%;
+  max-width: 440px;
+  align-self: center;
+  margin-bottom: 6px;
+  background: rgba(234, 9, 23, 0.14);
+  border: 1px solid rgba(234, 9, 23, 0.6);
+  border-radius: 4px;
+  color: #ff3b4b;
+  font-family: var(--ec-font-tech);
+  font-size: clamp(0.7rem, 1.8vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(234, 9, 23, 0.25);
+  box-sizing: border-box;
+  animation: ecShake 0.4s ease;
+}
+
+.ec__error-icon {
+  font-size: 1.15em;
+  color: #ea0917;
+  flex-shrink: 0;
+}
+
+@keyframes ecShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
 .ec__submit-btn {
   display: flex;
   align-items: center;

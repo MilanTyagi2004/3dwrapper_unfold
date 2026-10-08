@@ -14,6 +14,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeCanvas } from 'qrcode.react'
 import LiquidHeadline from '../LiquidHeadline'
+import { supabase } from '../../lib/supabase'
 import './EmailCollect.css'
 
 /* ── Constants & Helpers ───────────────────────────────── */
@@ -41,28 +42,18 @@ const VERIFY_STEPS = [
   'ACCESS GRANTED.'
 ]
 
-// Generate deterministic unique DF-XXXX-Letter member pass ID
-function generateMemberId(name, email) {
-  const str = `${name.trim()}-${email.trim()}`.toLowerCase()
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i)
-    hash |= 0
-  }
-  const num = Math.abs(hash % 9000) + 1000
-  const letters = ['A', 'B', 'C', 'X', 'Z', 'V', 'K']
-  const letter = letters[Math.abs(hash) % letters.length]
-  return `DF-${num}-${letter}`
+// Generate a unique high-status Member Pass ID for every submission
+function generateMemberId() {
+  const num = Math.floor(1000 + Math.random() * 9000)
+  const letters = ['X', 'Z', 'V', 'K', 'R', 'M', 'A', 'B', 'C', 'D']
+  const letter = letters[Math.floor(Math.random() * letters.length)]
+  const suffix = Math.floor(1 + Math.random() * 9)
+  return `DF-${num}-${letter}${suffix}`
 }
 
-// Deterministically assign one of the 8 curated brand taglines
-function pickTagline(email) {
-  let hash = 0
-  for (let i = 0; i < email.length; i++) {
-    hash = (hash << 3) - hash + email.charCodeAt(i)
-    hash |= 0
-  }
-  return TAGLINES[Math.abs(hash) % TAGLINES.length]
+// Assign a curated brand tagline for the card
+function pickTagline() {
+  return TAGLINES[Math.floor(Math.random() * TAGLINES.length)]
 }
 
 // Helper: Canvas Rounded Rectangle
@@ -91,6 +82,9 @@ export default function EmailCollect() {
   const [tagline, setTagline] = useState('')
   const [verifyIdx, setVerifyIdx] = useState(0)
 
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isChecking, setIsChecking] = useState(false)
+
   // Card reference for canvas rendering
   const canvasCardRef = useRef(null)
 
@@ -100,14 +94,65 @@ export default function EmailCollect() {
   const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0, px: 50, py: 50 })
 
   /* ── Form Submit: Transition to Cinematic Verification ── */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email.trim()) return
+    if (!email.trim() || isChecking) return
+    setErrorMessage('')
 
-    const displayName = (name.trim() || email.split('@')[0]).toUpperCase()
-    const generatedId = generateMemberId(displayName, email)
-    const assignedTagline = pickTagline(email)
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPhone = phone.trim()
 
+    setIsChecking(true)
+
+    // 1. Check if email already registered in Supabase
+    try {
+      const { data: existing, error: checkErr } = await supabase
+        .from('founder_passes')
+        .select('id')
+        .eq('email', cleanEmail)
+        .limit(1)
+
+      if (existing && existing.length > 0) {
+        setIsChecking(false)
+        setErrorMessage('ACCESS PASS ALREADY ISSUED // THIS EMAIL IS ALREADY REGISTERED')
+        return
+      }
+    } catch (err) {
+      console.warn('[Supabase] Duplicate pre-check note:', err)
+    }
+
+    const displayName = (name.trim() || cleanEmail.split('@')[0]).toUpperCase()
+    const generatedId = generateMemberId()
+    const assignedTagline = pickTagline()
+
+    // 2. Insert record into Supabase
+    try {
+      const { error } = await supabase.from('founder_passes').insert([
+        {
+          name: displayName,
+          email: cleanEmail,
+          phone: cleanPhone || null,
+          member_id: generatedId,
+          tagline: assignedTagline,
+        }
+      ])
+      if (error) {
+        if (
+          error.code === '23505' ||
+          error.message?.toLowerCase().includes('duplicate') ||
+          error.message?.toLowerCase().includes('unique')
+        ) {
+          setIsChecking(false)
+          setErrorMessage('ACCESS PASS ALREADY ISSUED // THIS EMAIL IS ALREADY REGISTERED')
+          return
+        }
+        console.warn('[Supabase] Note on founder pass save:', error.message)
+      }
+    } catch (err) {
+      console.warn('[Supabase] Error during submission:', err)
+    }
+
+    setIsChecking(false)
     setName(displayName)
     setMemberId(generatedId)
     setTagline(assignedTagline)
@@ -657,7 +702,10 @@ export default function EmailCollect() {
                     type="email"
                     placeholder="name@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      if (errorMessage) setErrorMessage('')
+                    }}
                     className="ec__input"
                     required
                     autoComplete="email"
@@ -671,15 +719,28 @@ export default function EmailCollect() {
                     type="tel"
                     placeholder="WE WON'T SPAM YOU"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value)
+                      if (errorMessage) setErrorMessage('')
+                    }}
                     className="ec__input"
                     autoComplete="tel"
                   />
                 </div>
               </div>
 
-              <button type="submit" className="ec__submit-btn">
-                <span className="ec__submit-text">SUMMON THE DEMON</span>
+              {/* Duplicate Email / Error Alert Badge */}
+              {errorMessage && (
+                <div className="ec__error-badge">
+                  <span className="ec__error-icon">⚠</span>
+                  <span className="ec__error-text">{errorMessage}</span>
+                </div>
+              )}
+
+              <button type="submit" className="ec__submit-btn" disabled={isChecking}>
+                <span className="ec__submit-text">
+                  {isChecking ? 'VERIFYING CREDENTIALS...' : 'SUMMON THE DEMON'}
+                </span>
                 <span className="ec__submit-arrow">→</span>
               </button>
 

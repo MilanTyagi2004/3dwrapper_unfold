@@ -16,6 +16,8 @@ export default function HeroSection() {
   const isInViewRef = useRef(true);
   const isAwakenedRef = useRef(false);
   const isMutedRef = useRef(true);
+  const hasUserUnlockedRef = useRef(false);
+  const isInitialMountRef = useRef(true);
 
   // Unmute and play ambient audio with volume
   const unmuteAndPlay = () => {
@@ -47,6 +49,7 @@ export default function HeroSection() {
     }
   };
 
+
   useEffect(() => {
     isAwakenedRef.current = isAwakened;
     if (!isMutedRef.current && isInViewRef.current) {
@@ -56,17 +59,34 @@ export default function HeroSection() {
   }, [isAwakened]);
 
   useEffect(() => {
-    // 1. Initial attempt: try unmuted autoplay on load
+    // 1. GUARANTEED IMMEDIATE AUTOPLAY:
+    // Start idle video strictly muted so all browsers instantly autoplay on load with ZERO click!
     if (idleVideoRef.current) {
+      idleVideoRef.current.defaultMuted = true;
+      idleVideoRef.current.muted = true;
+      idleVideoRef.current.play().catch(() => {});
+    }
+
+    if (awakenVideoRef.current) {
+      awakenVideoRef.current.currentTime = 0;
+      awakenVideoRef.current.defaultMuted = true;
+      awakenVideoRef.current.muted = true;
+    }
+
+    // 2. Safe check: Test if browser permits unmuted audio on cold load (e.g. MEI index allows it)
+    const testColdAutoplay = () => {
+      if (!idleVideoRef.current) return;
       idleVideoRef.current.muted = false;
       idleVideoRef.current.volume = 0.85;
-      idleVideoRef.current.play()
-        .then(() => {
+      const p = idleVideoRef.current.play();
+      if (p !== undefined) {
+        p.then(() => {
+          // Browser permitted immediate sound!
+          hasUserUnlockedRef.current = true;
           isMutedRef.current = false;
           setIsMuted(false);
-        })
-        .catch(() => {
-          // Autoplay blocked without user gesture: safely start muted
+        }).catch(() => {
+          // Autoplay policy prevented sound: safely keep running muted so video NEVER freezes!
           if (idleVideoRef.current) {
             idleVideoRef.current.muted = true;
             idleVideoRef.current.play().catch(() => {});
@@ -74,37 +94,47 @@ export default function HeroSection() {
           isMutedRef.current = true;
           setIsMuted(true);
         });
-    }
-
-    if (awakenVideoRef.current) {
-      awakenVideoRef.current.currentTime = 0;
-      awakenVideoRef.current.muted = true;
-    }
-
-    // 2. Unmute on the first interaction (click, tap, wheel, scroll, keypress)
-    const handleUserInteraction = () => {
-      if (isInViewRef.current) {
-        unmuteAndPlay();
       }
     };
 
-    const interactionEvents = ['click', 'pointerdown', 'touchstart', 'keydown', 'wheel'];
+    const idleEl = idleVideoRef.current;
+    if (idleEl) {
+      idleEl.addEventListener('playing', testColdAutoplay, { once: true });
+    }
+
+    // 3. Global listener: Unmute on first user gesture anywhere on page (click, tap, pointerdown, key)
+    const interactionEvents = ['pointerdown', 'click', 'touchstart', 'keydown', 'mousedown'];
+    const handleFirstInteraction = () => {
+      hasUserUnlockedRef.current = true;
+      if (isInViewRef.current) {
+        unmuteAndPlay();
+      }
+      interactionEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleFirstInteraction);
+      });
+    };
+
     interactionEvents.forEach((evt) => {
-      window.addEventListener(evt, handleUserInteraction, { passive: true });
+      window.addEventListener(evt, handleFirstInteraction, { passive: true });
     });
 
-    // 3. Viewport IntersectionObserver: Automatically MUTE when scrolled away!
+    // 4. Viewport IntersectionObserver: Automatically MUTE when scrolled away, UNMUTE when on screen!
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
         const inView = Boolean(entry.isIntersecting && entry.intersectionRatio > 0.05);
         isInViewRef.current = inView;
 
+        // Skip on initial mount to avoid premature unmuted playback triggers
+        if (isInitialMountRef.current) {
+          isInitialMountRef.current = false;
+          return;
+        }
+
         if (!inView) {
-          // Hero went off screen -> MUTE!
           muteAudio();
         } else {
-          // Hero back on screen -> UNMUTE!
+          // Hero is on screen -> automatically play audio!
           unmuteAndPlay();
         }
       },
@@ -115,19 +145,22 @@ export default function HeroSection() {
       observer.observe(heroRef.current);
     }
 
-    // 4. Tab visibility change
+    // 5. Tab visibility change: Mute when user leaves tab, unmute when returning
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         muteAudio();
-      } else if (isInViewRef.current) {
+      } else if (isInViewRef.current && hasUserUnlockedRef.current) {
         unmuteAndPlay();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      if (idleEl) {
+        idleEl.removeEventListener('playing', testColdAutoplay);
+      }
       interactionEvents.forEach((evt) => {
-        window.removeEventListener(evt, handleUserInteraction);
+        window.removeEventListener(evt, handleFirstInteraction);
       });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       observer.disconnect();
@@ -138,6 +171,7 @@ export default function HeroSection() {
 
   const handleWorkerEnter = () => {
     setIsHovered(true);
+    hasUserUnlockedRef.current = true;
     if (isAwakened || !awakenVideoRef.current) return;
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
@@ -148,7 +182,7 @@ export default function HeroSection() {
       idleVideoRef.current.muted = true;
     }
     if (awakenVideoRef.current) {
-      awakenVideoRef.current.muted = isMutedRef.current;
+      awakenVideoRef.current.muted = false;
       awakenVideoRef.current.volume = 0.9;
     }
 
@@ -157,6 +191,8 @@ export default function HeroSection() {
       playPromise
         .then(() => {
           setIsAwakened(true);
+          isMutedRef.current = false;
+          setIsMuted(false);
         })
         .catch(() => { });
     }
@@ -196,11 +232,11 @@ export default function HeroSection() {
       <div className="hero__video-container">
         <video
           ref={idleVideoRef}
-          src="/assets/brand/demon_worker_idle.mp4?v=ambient_audio_v3"
+          src="/assets/brand/demon_worker_idle.mp4?v=ambient_audio_v4"
           className="hero__video hero__video--idle"
           autoPlay
           loop
-          muted={isMuted}
+          muted
           playsInline
           preload="auto"
         />
@@ -208,9 +244,9 @@ export default function HeroSection() {
         {/* Background Video Layer 2: Natural Awaken & Return Sequence */}
         <video
           ref={awakenVideoRef}
-          src="/assets/brand/demon_worker_awaken_pingpong.mp4?v=ambient_audio_v3"
+          src="/assets/brand/demon_worker_awaken_pingpong.mp4?v=ambient_audio_v4"
           className={`hero__video hero__video--awaken ${isAwakened ? 'hero__video--active' : ''}`}
-          muted={isAwakened ? isMuted : true}
+          muted={!isAwakened || isMuted}
           playsInline
           preload="auto"
           onEnded={handleAwakenEnded}

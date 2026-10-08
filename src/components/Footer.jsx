@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import './Footer.css';
 
 export default function Footer() {
@@ -30,10 +31,24 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.trim()) {
+    const cleanEmail = email.trim().toLowerCase();
+    if (cleanEmail) {
       setSubmitted(true);
+
+      // Asynchronously insert into Supabase newsletter_subscribers table
+      try {
+        const { error } = await supabase.from('newsletter_subscribers').insert([
+          { email: cleanEmail }
+        ]);
+        if (error) {
+          console.warn('[Supabase] Newsletter subscription note:', error.message);
+        }
+      } catch (err) {
+        console.warn('[Supabase] Newsletter subscription error:', err);
+      }
+
       setTimeout(() => {
         setEmail('');
         setSubmitted(false);
