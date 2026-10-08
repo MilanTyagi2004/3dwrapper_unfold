@@ -216,7 +216,12 @@ export default function HeroSection() {
     };
   }, []);
 
-  const handleWorkerEnter = (side) => {
+  const handleWorkerEnter = (side, e) => {
+    // Fix for Mobile/iOS: Touch devices fire pointerenter BEFORE click, but pointerenter lacks 
+    // user-gesture permissions to play unmuted video. This caused the video to fail playing 
+    // but state to update, breaking the subsequent click. We ignore touch hover and rely on click.
+    if (e && e.type === 'pointerenter' && e.pointerType !== 'mouse') return;
+
     setIsHovered(true);
     hasUserUnlockedRef.current = true;
     
@@ -243,7 +248,12 @@ export default function HeroSection() {
           isMutedRef.current = false;
           setIsMuted(false);
         })
-        .catch(() => { });
+        .catch(() => {
+          // Fallback if browser still blocks audio: play muted to prevent UI freeze
+          targetVideo.muted = true;
+          targetVideo.play().catch(()=>{});
+          setAwakenedSide(side);
+        });
     }
   };
 
@@ -321,18 +331,18 @@ export default function HeroSection() {
       {/* Targeted Demon Worker Hotspots (Invisible Interactive Areas) */}
       <div
         className="hero__hotspot hero__hotspot--left"
-        onMouseEnter={() => handleWorkerEnter('left')}
-        onMouseLeave={handleWorkerLeave}
-        onClick={() => handleWorkerEnter('left')}
+        onPointerEnter={(e) => handleWorkerEnter('left', e)}
+        onPointerLeave={handleWorkerLeave}
+        onClick={(e) => handleWorkerEnter('left', e)}
         role="button"
         tabIndex={0}
         aria-label="Interact with Left Demon Worker"
       />
       <div
         className="hero__hotspot hero__hotspot--right"
-        onMouseEnter={() => handleWorkerEnter('right')}
-        onMouseLeave={handleWorkerLeave}
-        onClick={() => handleWorkerEnter('right')}
+        onPointerEnter={(e) => handleWorkerEnter('right', e)}
+        onPointerLeave={handleWorkerLeave}
+        onClick={(e) => handleWorkerEnter('right', e)}
         role="button"
         tabIndex={0}
         aria-label="Interact with Right Demon Worker"
