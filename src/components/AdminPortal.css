@@ -10,8 +10,8 @@
   --ap-red: #ea0917;
   --ap-cream: #f7eee2;
   --ap-muted: rgba(247, 238, 226, 0.6);
-  --ap-font-tech: 'Space Mono', 'JetBrains Mono', monospace;
-  --ap-font-serif: 'Cinzel', Georgia, serif;
+  --ap-font-tech: var(--font-barlow);
+  --ap-font-serif: var(--font-meursault);
 }
 
 /* ── 1. Passkey Gate Screen ── */
@@ -98,8 +98,8 @@
 }
 
 .ap-gate__desc {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.85rem;
+  font-family: var(--font-barlow);
+  font-size: 0.92rem;
   line-height: 1.5;
   color: var(--ap-muted);
   margin: 0 0 24px 0;
@@ -394,8 +394,8 @@
 }
 
 .ap-metric-card__hint {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.74rem;
+  font-family: var(--font-barlow);
+  font-size: 0.8rem;
   color: rgba(247, 238, 226, 0.45);
 }
 

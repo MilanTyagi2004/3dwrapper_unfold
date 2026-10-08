@@ -85,10 +85,10 @@
 }
 
 .nav__title {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-meursault);
   font-size: clamp(1rem, 1.25vw, 1.15rem);
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #FFFFE1;
   line-height: 1;
@@ -97,7 +97,7 @@
 }
 
 .nav__tagline {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-barlow);
   font-size: 0.62rem;
   font-weight: 600;
   letter-spacing: 0.2em;
@@ -131,7 +131,7 @@
   align-items: center;
   gap: 6px;
   text-decoration: none;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-barlow);
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -232,7 +232,7 @@
 }
 
 .nav__status-text {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-barlow);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -255,7 +255,7 @@
   border-radius: 2px;
   color: #FFFFE1;
   text-decoration: none;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-barlow);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.18em;

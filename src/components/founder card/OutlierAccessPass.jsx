@@ -196,11 +196,11 @@ export default function OutlierAccessPass() {
 
       // 3. Brand Title
       ctx.fillStyle = '#FFFEE1'
-      ctx.font = '900 68px "Cinzel", Georgia, serif'
+      ctx.font = '800 68px "Meursault VF"'
       ctx.fillText('OUTLIER ACCESS', W / 2, cardY + 260)
 
       ctx.fillStyle = '#EA0917'
-      ctx.font = '700 26px "Barlow Condensed", sans-serif'
+      ctx.font = '700 26px "Barlow Condensed"'
       ctx.fillText('TIER 01 // FOUNDING POSSESSED', W / 2, cardY + 310)
 
       // 4. Member Name Box
@@ -212,23 +212,23 @@ export default function OutlierAccessPass() {
       ctx.strokeRect(cardX + 60, boxY, cardW - 120, 200)
 
       ctx.fillStyle = 'rgba(255, 254, 225, 0.5)'
-      ctx.font = '700 20px "Barlow Condensed", sans-serif'
+      ctx.font = '700 20px "Barlow Condensed"'
       ctx.fillText('OFFICIALLY ISSUED TO', W / 2, boxY + 45)
 
       // Clean, uppercase Member Name
       ctx.fillStyle = '#FFFEE1'
       const nameFontSize = fullName.length > 18 ? 44 : 54
-      ctx.font = `900 ${nameFontSize}px "Cinzel", Georgia, serif`
+      ctx.font = `800 ${nameFontSize}px "Meursault VF"`
       ctx.fillText(fullName.toUpperCase().trim(), W / 2, boxY + 115)
 
       if (instagram.trim()) {
         const cleanIg = instagram.startsWith('@') ? instagram : `@${instagram}`
         ctx.fillStyle = '#EA0917'
-        ctx.font = '600 24px "Barlow Condensed", sans-serif'
+        ctx.font = '600 24px "Barlow Condensed"'
         ctx.fillText(cleanIg.toUpperCase(), W / 2, boxY + 165)
       } else {
         ctx.fillStyle = 'rgba(255, 254, 225, 0.4)'
-        ctx.font = '600 20px "Barlow Condensed", sans-serif'
+        ctx.font = '600 20px "Barlow Condensed"'
         ctx.fillText('SUBLINGUAL SACRAMENT PASS', W / 2, boxY + 165)
       }
 
@@ -240,11 +240,11 @@ export default function OutlierAccessPass() {
       ctx.strokeRect(cardX + 60, serialY, cardW - 120, 150)
 
       ctx.fillStyle = 'rgba(255, 254, 225, 0.6)'
-      ctx.font = '700 22px "Barlow Condensed", sans-serif'
+      ctx.font = '700 22px "Barlow Condensed"'
       ctx.fillText('ALLOCATION SERIAL NUMBER', W / 2, serialY + 45)
 
       ctx.fillStyle = '#EA0917'
-      ctx.font = '900 58px "Cinzel", monospace'
+      ctx.font = '800 58px "Barlow Condensed"'
       ctx.fillText(allocId, W / 2, serialY + 110)
 
       // 6. Specs & Delivery Truth
@@ -300,11 +300,11 @@ export default function OutlierAccessPass() {
 
       // 8. Story Top & Bottom Outer Badges
       ctx.fillStyle = '#EA0917'
-      ctx.font = '900 32px "Cinzel", Georgia, serif'
+      ctx.font = '800 32px "Meursault VF"'
       ctx.fillText('DEMONIC FUEL', W / 2, 160)
 
       ctx.fillStyle = 'rgba(255, 254, 225, 0.4)'
-      ctx.font = '600 20px "Barlow Condensed", sans-serif'
+      ctx.font = '600 20px "Barlow Condensed"'
       ctx.fillText('FOR THE POSSESSED • EST. 2026', W / 2, 200)
 
       ctx.fillStyle = '#FFFEE1'

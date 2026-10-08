@@ -3,12 +3,10 @@
    Luxury American Express Black Card Titanium Edition
    ============================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&family=Cinzel:wght@500;600;700;800;900&family=Pirata+One&display=swap');
-
 :root {
-  --ec-font-serif: 'Cinzel', Georgia, serif;
-  --ec-font-tech: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
-  --ec-font-gothic: 'Pirata One', 'Cinzel', serif;
+  --ec-font-serif: var(--font-meursault);
+  --ec-font-tech: var(--font-barlow);
+  --ec-font-gothic: var(--font-amador);
 
   --ec-red: #ea0917;
   --ec-red-bright: #ff2035;
@@ -797,10 +795,10 @@
 }
 
 .ec__card-pass-number {
-  font-family: var(--ec-font-serif);
-  font-size: clamp(0.82rem, 3.8cqw, 1.25rem);
-  font-weight: 700;
-  letter-spacing: clamp(0.12em, 0.4cqw, 0.18em);
+  font-family: var(--font-barlow);
+  font-size: clamp(0.92rem, 4.2cqw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: clamp(0.14em, 0.5cqw, 0.2em);
   color: #ffffff;
   line-height: 1.2;
   text-shadow:

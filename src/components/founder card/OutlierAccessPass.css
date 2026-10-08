@@ -6,6 +6,8 @@
 .outlier-pass {
   position: relative;
   width: 100%;
+  --font-tech: var(--font-barlow);
+  --font-serif: var(--font-meursault);
 }
 
 /* ── Phase 1: Form Box ───────────────────────────────────────── */

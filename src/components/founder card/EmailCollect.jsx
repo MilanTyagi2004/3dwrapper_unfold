@@ -6,7 +6,7 @@
  * - React (useState, useRef, useEffect, useCallback)
  * - Framer Motion (framer-motion)
  * - QR Code Canvas (qrcode.react via QRCodeCanvas)
- * - Typography: Cinzel (luxury serif) & Barlow Condensed (editorial tech font)
+ * - Typography: Meursault VF (brand headline/logo) & Barlow Condensed (editorial tech font) & Amador Font (decorative)
  * - High-res Canvas 2D Exporters: 4X Ultra-HD Card (2080x1312) & 9:16 Instagram Story (1080x1920)
  */
 
@@ -236,14 +236,14 @@ export default function EmailCollect() {
     const cw = baseW * s
     const ch = baseH * s
 
-    // Ensure custom fonts (Cinzel, Barlow Condensed) are fully loaded
+    // Ensure custom brand fonts (Meursault VF, Barlow Condensed, Amador Font) are fully loaded
     if (typeof document !== 'undefined' && document.fonts) {
       await document.fonts.ready
       try {
         await Promise.all([
-          document.fonts.load(`700 ${Math.round(29.6 * s)}px "Cinzel"`),
-          document.fonts.load(`700 ${Math.round(20 * s)}px "Cinzel"`),
-          document.fonts.load(`700 ${Math.round(18.5 * s)}px "Cinzel"`),
+          document.fonts.load(`700 ${Math.round(29.6 * s)}px "Meursault VF"`),
+          document.fonts.load(`700 ${Math.round(18.5 * s)}px "Meursault VF"`),
+          document.fonts.load(`800 ${Math.round(20 * s)}px "Barlow Condensed"`),
           document.fonts.load(`700 ${Math.round(12 * s)}px "Barlow Condensed"`),
           document.fonts.load(`700 ${Math.round(11 * s)}px "Barlow Condensed"`),
           document.fonts.load(`700 ${Math.round(10 * s)}px "Barlow Condensed"`),
@@ -334,7 +334,7 @@ export default function EmailCollect() {
     ctx.textBaseline = 'alphabetic'
     const titleY = 58 * s
     const titleFontSize = Math.round(29.6 * s)
-    ctx.font = `700 ${titleFontSize}px "Cinzel", Georgia, serif`
+    ctx.font = `700 ${titleFontSize}px "Meursault VF"`
 
     // Deep physical drop shadow
     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)'
@@ -441,7 +441,7 @@ export default function EmailCollect() {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'alphabetic'
     ctx.fillStyle = '#ff1e32'
-    ctx.font = `700 ${Math.round(10 * s)}px "Barlow Condensed", sans-serif`
+    ctx.font = `700 ${Math.round(10 * s)}px "Barlow Condensed"`
     ctx.shadowColor = 'rgba(255, 30, 50, 0.55)'
     ctx.shadowBlur = 4 * s
     ctx.fillText('SCAN AT YOUR OWN RISK', qrX + qrSize / 2, qrY + qrSize + 16 * s)
@@ -453,14 +453,14 @@ export default function EmailCollect() {
 
     // "PASS NO."
     ctx.fillStyle = '#b8c2d1'
-    ctx.font = `700 ${Math.round(12 * s)}px "Barlow Condensed", sans-serif`
+    ctx.font = `700 ${Math.round(12 * s)}px "Barlow Condensed"`
     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)'
     ctx.shadowBlur = 3 * s
     ctx.fillText('PASS NO.', 40 * s, ch - 56 * s)
 
     // Member ID (e.g. "DF-8994-C")
     ctx.fillStyle = '#ffffff'
-    ctx.font = `700 ${Math.round(20 * s)}px "Cinzel", Georgia, serif`
+    ctx.font = `800 ${Math.round(20 * s)}px "Barlow Condensed"`
     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)'
     ctx.shadowBlur = 4 * s
     ctx.shadowOffsetY = 1.5 * s
@@ -468,7 +468,7 @@ export default function EmailCollect() {
 
     // Member Name in Uppercase
     ctx.fillStyle = '#cfd6e2'
-    ctx.font = `600 ${Math.round(12.5 * s)}px "Barlow Condensed", sans-serif`
+    ctx.font = `600 ${Math.round(12.5 * s)}px "Barlow Condensed"`
     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
     ctx.shadowBlur = 2 * s
     ctx.fillText((name || '').toUpperCase(), 40 * s, ch - 18 * s)
@@ -476,7 +476,7 @@ export default function EmailCollect() {
     // Bottom Center: Crimson "EST. 2026"
     ctx.textAlign = 'center'
     ctx.fillStyle = '#ff2035'
-    ctx.font = `700 ${Math.round(18.5 * s)}px "Cinzel", Georgia, serif`
+    ctx.font = `700 ${Math.round(18.5 * s)}px "Meursault VF"`
     ctx.shadowColor = 'rgba(255, 32, 53, 0.6)'
     ctx.shadowBlur = 5 * s
     ctx.fillText('EST. 2026', cw / 2, ch - 20 * s)
@@ -484,7 +484,7 @@ export default function EmailCollect() {
     // Bottom Right: "FOR THE OBSESSED"
     ctx.textAlign = 'right'
     ctx.fillStyle = '#cbd3df'
-    ctx.font = `700 ${Math.round(11 * s)}px "Barlow Condensed", sans-serif`
+    ctx.font = `700 ${Math.round(11 * s)}px "Barlow Condensed"`
     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)'
     ctx.shadowBlur = 3 * s
     ctx.fillText('FOR THE OBSESSED', cw - 36 * s, ch - 20 * s)
@@ -560,7 +560,7 @@ export default function EmailCollect() {
     ctx.save()
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(234, 9, 23, 0.9)'
-    ctx.font = '700 16px "Barlow Condensed", sans-serif'
+    ctx.font = '700 16px "Barlow Condensed"'
     ctx.letterSpacing = '8px'
     ctx.fillText('FOUNDER PASS ALLOCATION', sw / 2, 420)
 
@@ -613,17 +613,17 @@ export default function EmailCollect() {
     brandGrad.addColorStop(0.6, '#d0d4de')
     brandGrad.addColorStop(1, '#8e95a2')
     ctx.fillStyle = brandGrad
-    ctx.font = '700 46px "Cinzel", Georgia, serif'
+    ctx.font = '700 46px "Meursault VF"'
     ctx.letterSpacing = '12px'
     ctx.fillText('DEMONIC FUEL', sw / 2, bottomLineY + 85)
 
     ctx.fillStyle = 'rgba(234, 9, 23, 0.9)'
-    ctx.font = '700 15px "Barlow Condensed", sans-serif'
+    ctx.font = '700 15px "Barlow Condensed"'
     ctx.letterSpacing = '8px'
     ctx.fillText('FOR THE OBSESSED', sw / 2, bottomLineY + 125)
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-    ctx.font = '600 13px "Barlow Condensed", sans-serif'
+    ctx.font = '600 13px "Barlow Condensed"'
     ctx.letterSpacing = '6px'
     ctx.fillText('DEMONICFUEL.COM', sw / 2, bottomLineY + 165)
     ctx.restore()

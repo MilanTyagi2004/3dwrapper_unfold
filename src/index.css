@@ -1,25 +1,74 @@
+/* ==============================================================
+   DEMONIC FUEL — OFFICIAL 3-FONT BRAND SYSTEM
+   1. AMADOR FONT      — Decorative / Ornamental / Gothic accents
+   2. MEURSAULT VF    — Main Logo / Hero headline / Main headings
+   3. BARLOW CONDENSED — Navigation / Body / Technical / Labels / Buttons
+   ============================================================== */
+
+/* 1. AMADOR FONT
+   - Use ONLY for decorative / ornamental typography.
+   - Occasional social-event, grunge, demonic, gothic-style visual accents.
+   - Structured so correct font files can be placed in /fonts/ or /resource/Font/ */
 @font-face {
-  font-family: 'PirataOne-Regular';
-  src: url('../resource/Font/PirataOne-Regular.ttf') format('truetype');
+  font-family: 'Amador Font';
+  src: url('/fonts/Amador.woff2') format('woff2'),
+       url('/fonts/Amador.woff') format('woff'),
+       url('/fonts/Amador.ttf') format('truetype'),
+       url('/fonts/Amador.otf') format('opentype'),
+       url('../resource/Font/Amador.ttf') format('truetype'),
+       local('Amador Font'),
+       local('Amador');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
+/* 2. MEURSAULT VF
+   - Primary display and brand font.
+   - Main logo, hero headline, major headings, key statements.
+   - Preserves high-contrast serif visual character.
+   - Structured so correct font files can be placed in /fonts/ or /resource/Font/ */
 @font-face {
-  font-family: 'Gloucester MT Extra Condensed';
-  src: url('/assets/brand/Gloucester-MT-Extra-Condensed.ttf') format('truetype'),
-       url('../resource/Font/Gloucester MT Extra Condensed Regular.ttf') format('truetype');
-  font-weight: normal;
+  font-family: 'Meursault VF';
+  src: url('/fonts/MeursaultVF.woff2') format('woff2'),
+       url('/fonts/MeursaultVF.woff') format('woff'),
+       url('/fonts/MeursaultVF.ttf') format('truetype'),
+       url('/fonts/MeursaultVF.otf') format('opentype'),
+       url('../resource/Font/MeursaultVF.ttf') format('truetype'),
+       local('Meursault VF'),
+       local('Meursault');
+  font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
+}
+
+/* 3. BARLOW CONDENSED
+   - Technical information, body/paragraph text, labels, metadata, navigation, buttons.
+   - Loaded from project font file and Google Fonts */
+@font-face {
+  font-family: 'Barlow Condensed';
+  src: url('/fonts/BarlowCondensed-SemiBold.ttf') format('truetype'),
+       url('../resource/Font/BarlowCondensed-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
 :root {
-  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Exact 3 Brand Font Variables */
+  --font-amador: "Amador Font";
+  --font-meursault: "Meursault VF";
+  --font-barlow: "Barlow Condensed";
+
+  /* Default Typography Token */
+  --font-family: var(--font-barlow);
+
+  /* Shared Theme Tokens */
   --bg-gradient: linear-gradient(135deg, #09090b 0%, #171720 100%);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --accent-primary: #8b5cf6;
-  --accent-secondary: #ec4899;
+  --accent-primary: #ea0917;
+  --accent-secondary: #ff2035;
   --accent-gradient: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
@@ -31,22 +80,32 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
   background: #000000;
   color: var(--text-primary);
-  font-family: var(--font-family);
+  font-family: var(--font-barlow);
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Headings default to display headline font */
 h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-meursault);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+}
+
+p, span, a, button, input, textarea, select, label {
+  font-family: var(--font-barlow);
 }
 
 a {
@@ -55,8 +114,30 @@ a {
 }
 
 button {
-  font-family: inherit;
+  font-family: var(--font-barlow);
   border: none;
   background: none;
   cursor: pointer;
+}
+
+/* ── Typography Utility Classes ───────────────────────────────── */
+.font-amador,
+.text-ornamental,
+.text-decorative,
+.text-gothic {
+  font-family: var(--font-amador);
+}
+
+.font-meursault,
+.text-headline,
+.text-logo,
+.text-brand {
+  font-family: var(--font-meursault);
+}
+
+.font-barlow,
+.text-body,
+.text-tech,
+.text-ui {
+  font-family: var(--font-barlow);
 }

@@ -12,7 +12,7 @@
     radial-gradient(ellipse 35% 55% at 100% 50%, rgba(130, 8, 16, 0.08) 0%, transparent 65%);
   color: #ffffff;
   box-sizing: border-box;
-  font-family: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-barlow);
   overflow: hidden;
   z-index: 10;
   margin-top: 0;
@@ -133,9 +133,9 @@
 }
 
 .footer__brand-title {
-  font-family: 'Gloucester MT Extra Condensed', 'Cinzel', serif;
+  font-family: var(--font-meursault);
   font-size: clamp(1.9rem, 2.3vw, 2.3rem);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.12em;
   color: #ffffff;
   text-transform: uppercase;
@@ -228,7 +228,7 @@
 }
 
 .footer__nav-heading {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: var(--font-barlow);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -570,7 +570,7 @@
 
   .footer__accordion-num {
     display: inline-block;
-    font-family: 'Barlow Condensed', sans-serif;
+    font-family: var(--font-barlow);
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.16em;
