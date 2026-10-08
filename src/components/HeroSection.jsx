@@ -169,6 +169,49 @@ export default function HeroSection() {
     };
   }, []);
 
+  // Infinite seamless loop fix: Prevent browser loop stutter/freeze by instantly seeking to start
+  useEffect(() => {
+    const video = idleVideoRef.current;
+    if (!video) return;
+
+    let animationFrameId;
+
+    const enforceSeamlessLoop = () => {
+      if (video.duration && !video.paused) {
+        // If we are within 0.1 seconds of the end, instantly snap back to the start
+        // This bypasses the browser's native loop delay/black flash
+        if (video.duration - video.currentTime <= 0.15) {
+          video.currentTime = 0.05; // slightly after 0 to ensure play continues
+          // We don't fade, just snap instantly to feel like a continuous infinite loop
+        }
+      }
+      animationFrameId = requestAnimationFrame(enforceSeamlessLoop);
+    };
+
+    const handlePlay = () => {
+      cancelAnimationFrame(animationFrameId);
+      enforceSeamlessLoop();
+    };
+
+    const handlePause = () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+
+    if (!video.paused) {
+      enforceSeamlessLoop();
+    }
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      cancelAnimationFrame(animationFrameId);
+      video.style.opacity = 1;
+    };
+  }, []);
+
   const handleWorkerEnter = () => {
     setIsHovered(true);
     hasUserUnlockedRef.current = true;
