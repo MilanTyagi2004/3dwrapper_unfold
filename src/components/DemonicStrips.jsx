@@ -66,8 +66,8 @@ const STAGES = [
   {
     id: 'dispense',
     eyebrow: '02 — DISPENSE',
-    headline: 'One slide.\nPure energy.',
-    description: 'The front pouch glides smoothly out of the pack\nand advances into hero focus.',
+    headline: 'One Strip.\nPure Energy.',
+    description: '',
     meta: '45MG CAFFEINE · POCKET READY'
   },
   {
@@ -75,7 +75,7 @@ const STAGES = [
     eyebrow: '03 — READY',
     headline: 'Energy,\nwithout the\nritual.',
     description: '45mg natural caffeine in a thin oral strip.\nNo can. No water. No waiting.',
-    meta: 'ZERO SUGAR · FAST DISSOLVE'
+    meta: '0 SUGAR · 0 CALORIES · INSTANT DISSOLVE'
   },
   {
     id: 'taste',
@@ -432,7 +432,7 @@ const DemonicStrips = () => {
       <div className="strips-content-frame">
         {/* 1. TOP BRANDING */}
         <header className="strips-top-brand">
-          <span className="brand-eyebrow">ORAL ENERGY STRIP · 45MG CAFFEINE</span>
+          <span className="brand-eyebrow">ORAL ENERGY STRIP · 45MG NATURAL CAFFEINE + B VITAMINS</span>
           <p className="brand-tagline">No water. No can. No waiting.</p>
         </header>
 
@@ -518,14 +518,16 @@ const DemonicStrips = () => {
                   <LiquidHeadline headline={stage.headline} isActive={isActive} />
 
                   {/* Short Supporting Paragraph */}
-                  <p className="editorial-description">
-                    {stage.description.split('\n').map((line, i) => (
-                      <React.Fragment key={i}>
-                        {line}
-                        {i < stage.description.split('\n').length - 1 && <br />}
-                      </React.Fragment>
-                    ))}
-                  </p>
+                  {stage.description && (
+                    <p className="editorial-description">
+                      {stage.description.split('\n').map((line, i) => (
+                        <React.Fragment key={i}>
+                          {line}
+                          {i < stage.description.split('\n').length - 1 && <br />}
+                        </React.Fragment>
+                      ))}
+                    </p>
+                  )}
 
                   {/* Supporting Metadata */}
                   <div className="editorial-meta-row">

@@ -96,7 +96,7 @@ export default function EmailCollect() {
   /* ── Form Submit: Transition to Cinematic Verification ── */
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!email.trim() || isChecking) return
+    if (!email.trim() || !phone.trim() || isChecking) return
     setErrorMessage('')
 
     const cleanEmail = email.trim().toLowerCase()
@@ -654,21 +654,20 @@ export default function EmailCollect() {
       <div className="ec__inner">
         {/* Section Header */}
         <div className="ec__header">
-          <div className="ec__tagline-badge">§02 // FOR THE OBSESSED</div>
           <LiquidHeadline
-            headline="Summon Your Fuel"
+            headline="Summon Your Obsession"
             as="h2"
             className="ec__gothic-title"
             isActive={true}
           />
           <LiquidHeadline
-            headline="CLAIM YOUR FOUNDER CARD"
+            headline="CLAIM YOUR CULT CARD"
             as="h3"
             className="ec__headline"
             isActive={true}
           />
           <p className="ec__desc">
-            Fuel for the locked-in state. Built for those who refuse autopilot.
+            Join to get exclusive access to inner-circle
           </p>
         </div>
 
@@ -713,7 +712,7 @@ export default function EmailCollect() {
                 </div>
                 <div className="ec__field ec__field--full">
                   <label className="ec__label">
-                    03 // PHONE <span className="ec__optional">(OPTIONAL)</span>
+                    03 // PHONE *
                   </label>
                   <input
                     type="tel"
@@ -725,6 +724,7 @@ export default function EmailCollect() {
                     }}
                     className="ec__input"
                     autoComplete="tel"
+                    required
                   />
                 </div>
               </div>
@@ -739,13 +739,13 @@ export default function EmailCollect() {
 
               <button type="submit" className="ec__submit-btn" disabled={isChecking}>
                 <span className="ec__submit-text">
-                  {isChecking ? 'VERIFYING CREDENTIALS...' : 'SUMMON THE DEMON'}
+                  {isChecking ? 'VERIFYING CREDENTIALS...' : 'JOIN THE CULT'}
                 </span>
                 <span className="ec__submit-arrow">→</span>
               </button>
 
               <p className="ec__disclaimer">
-                ❖ NO SPAM. NO NOISE.
+                ❖ NO SPAM. NO SIGNAL.
               </p>
             </motion.form>
           )}

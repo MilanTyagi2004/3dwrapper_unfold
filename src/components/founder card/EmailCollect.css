@@ -123,6 +123,14 @@
   filter: drop-shadow(0 2px 25px rgba(255, 255, 255, 0.08)) drop-shadow(0 0 35px rgba(234, 9, 23, 0.2));
 }
 
+.ec__gothic-title .liquid-word:not(:last-child) {
+  margin-right: 0.15em;
+}
+
+.ec__gothic-title .liquid-space {
+  display: none;
+}
+
 .ec__headline {
   /* Brand book: subheads set in Barlow Condensed Bold */
   font-family: var(--ec-font-tech);
