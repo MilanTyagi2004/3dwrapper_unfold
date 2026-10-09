@@ -49,16 +49,7 @@ export default function Navbar() {
             onClick={(e) => scrollToSection(e, 'strips')}
           >
             <span className="nav__num">01</span>
-            <span className="nav__label">THE STRIP</span>
-          </a>
-          <span className="nav__sep">/</span>
-          <a 
-            href="#founder-pass" 
-            className="nav__link" 
-            onClick={(e) => scrollToSection(e, 'founder-pass')}
-          >
-            <span className="nav__num">02</span>
-            <span className="nav__label">FOUNDER PASS</span>
+            <span className="nav__label">OUR PRODUCT</span>
           </a>
         </div>
 
@@ -68,14 +59,6 @@ export default function Navbar() {
             <span className="nav__status-dot" />
             <span className="nav__status-text">BATCH 001 // ACTIVE</span>
           </div>
-          <a 
-            href="#founder-pass" 
-            className="nav__btn" 
-            onClick={(e) => scrollToSection(e, 'founder-pass')}
-          >
-            <span>CLAIM PASS</span>
-            <span className="nav__btn-arrow">→</span>
-          </a>
         </div>
       </div>
     </nav>
