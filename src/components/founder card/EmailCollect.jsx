@@ -84,6 +84,7 @@ export default function EmailCollect() {
 
   const [errorMessage, setErrorMessage] = useState('')
   const [isChecking, setIsChecking] = useState(false)
+  const [fallbackModalImg, setFallbackModalImg] = useState(null)
 
   // Card reference for canvas rendering
   const canvasCardRef = useRef(null)
@@ -513,10 +514,35 @@ export default function EmailCollect() {
 
     await renderCardToCanvas(ctx, baseW, baseH, card, scale)
 
-    const link = document.createElement('a')
-    link.download = `demonic-fuel-founder-card-${memberId || 'pass'}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
+    const dataUrl = canvas.toDataURL('image/png')
+    const filename = `demonic-fuel-founder-card-${memberId || 'pass'}.png`
+
+    if (navigator.canShare) {
+      try {
+        const res = await fetch(dataUrl)
+        const blob = await res.blob()
+        const file = new File([blob], filename, { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Demonic Fuel Founder Pass'
+          })
+          return
+        }
+      } catch (err) {
+        console.warn('Share API failed:', err)
+      }
+    }
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    if (isMobile) {
+      setFallbackModalImg(dataUrl)
+    } else {
+      const link = document.createElement('a')
+      link.download = filename
+      link.href = dataUrl
+      link.click()
+    }
   }, [memberId, renderCardToCanvas])
 
   /* ── Export 2: Instagram Story Vertical Asset (1080 × 1920 px) ── */
@@ -629,10 +655,35 @@ export default function EmailCollect() {
     ctx.restore()
 
     // Trigger Download
-    const link = document.createElement('a')
-    link.download = `demonic-fuel-story-${memberId || 'founder'}.png`
-    link.href = canvas.toDataURL('image/png')
-    link.click()
+    const dataUrl = canvas.toDataURL('image/png')
+    const filename = `demonic-fuel-story-${memberId || 'founder'}.png`
+
+    if (navigator.canShare) {
+      try {
+        const res = await fetch(dataUrl)
+        const blob = await res.blob()
+        const file = new File([blob], filename, { type: 'image/png' })
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'Demonic Fuel Founder Story'
+          })
+          return
+        }
+      } catch (err) {
+        console.warn('Share API failed:', err)
+      }
+    }
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    if (isMobile) {
+      setFallbackModalImg(dataUrl)
+    } else {
+      const link = document.createElement('a')
+      link.download = filename
+      link.href = dataUrl
+      link.click()
+    }
   }, [memberId, renderCardToCanvas])
 
   /* ── Reset to Form Phase ── */
@@ -910,6 +961,56 @@ export default function EmailCollect() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Fallback for iOS/Mobile where download doesn't work */}
+      <AnimatePresence>
+        {fallbackModalImg && (
+          <motion.div
+            className="ec__fallback-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.95)',
+              backdropFilter: 'blur(10px)',
+              zIndex: 999999,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              padding: '24px'
+            }}
+            onClick={() => setFallbackModalImg(null)}
+          >
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setFallbackModalImg(null)}
+                style={{
+                  position: 'absolute', top: '-48px', right: 0,
+                  background: 'none', border: 'none', color: '#fff',
+                  fontSize: '32px', cursor: 'pointer'
+                }}
+              >
+                ✕
+              </button>
+              <h3 style={{
+                color: '#ea0917', fontFamily: '"Barlow Condensed", sans-serif',
+                fontWeight: 700, letterSpacing: '4px', marginBottom: '20px',
+                textAlign: 'center', fontSize: '20px'
+              }}>
+                LONG PRESS IMAGE TO SAVE
+              </h3>
+              <img 
+                src={fallbackModalImg} 
+                alt="Generated Pass" 
+                style={{
+                  maxWidth: '100%', maxHeight: '75vh',
+                  borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)'
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }
