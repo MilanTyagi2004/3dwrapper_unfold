@@ -12,6 +12,7 @@ export default function HeroSection() {
   const rightAwakenVideoRef = useRef(null);
 
   const resetTimeoutRef = useRef(null);
+  const fadeIntervalsRef = useRef([]);
 
   const isInViewRef = useRef(true);
   const awakenedSideRef = useRef(null);
@@ -21,6 +22,9 @@ export default function HeroSection() {
 
   // Unmute and play ambient audio with volume
   const unmuteAndPlay = () => {
+    fadeIntervalsRef.current.forEach(clearInterval);
+    fadeIntervalsRef.current = [];
+
     isMutedRef.current = false;
     setIsMuted(false);
 
@@ -40,20 +44,42 @@ export default function HeroSection() {
     }
   };
 
-  // Mute audio completely
+  // Mute audio completely with a smooth fade out
   const muteAudio = () => {
     isMutedRef.current = true;
     setIsMuted(true);
 
-    if (idleVideoRef.current) {
-      idleVideoRef.current.muted = true;
-    }
-    if (leftAwakenVideoRef.current) {
-      leftAwakenVideoRef.current.muted = true;
-    }
-    if (rightAwakenVideoRef.current) {
-      rightAwakenVideoRef.current.muted = true;
-    }
+    const fadeDuration = 800; // ms
+    const fadeSteps = 20;
+    const stepTime = fadeDuration / fadeSteps;
+
+    [idleVideoRef.current, leftAwakenVideoRef.current, rightAwakenVideoRef.current].forEach(video => {
+      if (video && !video.muted && video.volume > 0) {
+        const startVolume = video.volume;
+        const volumeStep = startVolume / fadeSteps;
+        let currentStep = 0;
+
+        const interval = setInterval(() => {
+          if (!video) {
+            clearInterval(interval);
+            return;
+          }
+          currentStep++;
+          if (currentStep >= fadeSteps || !isMutedRef.current) {
+            if (isMutedRef.current) {
+              video.volume = 0;
+              video.muted = true;
+            }
+            clearInterval(interval);
+          } else {
+            video.volume = Math.max(0, startVolume - (volumeStep * currentStep));
+          }
+        }, stepTime);
+        fadeIntervalsRef.current.push(interval);
+      } else if (video) {
+        video.muted = true;
+      }
+    });
   };
 
   useEffect(() => {
