@@ -520,17 +520,7 @@ const DemonicStrips = () => {
                   {/* Large Editorial Headline with Liquid Water Displacement Interaction */}
                   <LiquidHeadline headline={stage.headline} isActive={isActive} />
 
-                  {/* Short Supporting Paragraph */}
-                  {stage.description && (
-                    <p className="editorial-description">
-                      {stage.description.split('\n').map((line, i) => (
-                        <React.Fragment key={i}>
-                          {line}
-                          {i < stage.description.split('\n').length - 1 && <br />}
-                        </React.Fragment>
-                      ))}
-                    </p>
-                  )}
+                  {/* Short Supporting Paragraph Removed */}
 
                   {/* Supporting Metadata */}
                   <div className="editorial-meta-row">
