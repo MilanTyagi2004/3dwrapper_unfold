@@ -393,7 +393,7 @@ export default function HeroSection() {
       <div className="hero__content">
         <div className="hero__badge">
           <span className="hero__badge-dot" />
-          <span className="hero__badge-text">FACILITY 06 // BRED IN DARKNESS</span>
+          <span className="hero__badge-text">DF LABS // CAFFEINE REENGINEERED</span>
         </div>
 
         <h1 className="hero__title">
@@ -401,7 +401,7 @@ export default function HeroSection() {
         </h1>
 
         <p className="hero__subtitle">
-          Sublingual energy engineered in the shadows. Rapid mucosal absorption, zero crash, unholy potency.
+          Caffeine engineered for people who take their obsession seriously. Rapid absorption, zero crash, unreal obsession.
         </p>
 
         <div className="hero__actions">
