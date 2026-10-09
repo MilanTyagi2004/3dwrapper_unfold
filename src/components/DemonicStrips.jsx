@@ -141,12 +141,15 @@ const DemonicStrips = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-        if (timelineRef.current) {
-          if (entry.isIntersecting) {
-            timelineRef.current.play();
-          } else {
-            timelineRef.current.pause();
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          setTimeout(() => {
+            if (timelineRef.current) {
+              timelineRef.current.play();
+            }
+          }, 800);
+          if (sectionRef.current) {
+            observer.unobserve(sectionRef.current);
           }
         }
       },
@@ -168,7 +171,7 @@ const DemonicStrips = () => {
     const tl = gsap.timeline({
       repeat: -1,
       repeatDelay: 0.5,
-      paused: false,
+      paused: true,
       onUpdate: () => {
         // Direct ref mutation for Three.js useFrame (zero React re-renders!)
         animRef.current = animObj;
@@ -416,8 +419,8 @@ const DemonicStrips = () => {
       ease: 'none'
     }, 0.0);
 
-    // Infinite continuous playback: runs non-stop without depending on scroll position or scrolling up
-    tl.play();
+    // The IntersectionObserver will handle play/pause automatically based on visibility
+    // tl.play();
 
     return () => {
       tl.kill();
