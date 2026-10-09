@@ -904,7 +904,7 @@ export default function EmailCollect() {
               </div>
 
               <p className="ec__card-note">
-                ❖ Scan the crimson QR code with any mobile device to immediately activate your allocation.
+                ❖ Share this on your socials to receive exclusive rewards
               </p>
             </motion.div>
           )}
