@@ -24,7 +24,7 @@
   inset: 0;
   background-image: url('/assets/brand/footer_backdrop_cropped.png');
   background-repeat: no-repeat;
-  background-position: center bottom;
+  background-position: center calc(100% + 60px);
   background-size: cover;
   opacity: 1;
   pointer-events: none;

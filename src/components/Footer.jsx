@@ -62,6 +62,7 @@ export default function Footer() {
       <div className="footer__mountain-overlay" aria-hidden="true" />
 
       {/* ── Top Dividing Hairline with Center Glowing Mini-Emblem ── */}
+      {false && (
       <div className="footer__top-hairline-wrap">
         <div className="footer__hairline-left" />
         <div className="footer__hairline-center">
@@ -73,9 +74,11 @@ export default function Footer() {
         </div>
         <div className="footer__hairline-right" />
       </div>
+      )}
 
       <div className="footer__inner">
         {/* ── Main Content Grid: Brand | Explore | Product | Company | Join ── */}
+        {false && (
         <div className="footer__content-grid">
           {/* Column 1: Brand Logo, Tagline & 3 Pillar Pills */}
           <div className="footer__col footer__col--brand">
@@ -275,6 +278,7 @@ export default function Footer() {
             </span>
           </div>
         </div>
+        )}
 
         {/* ── Bottom Bar: Hairline Divider + Copyright + Socials + Back to Top ── */}
         <div className="footer__bottom-divider" />
