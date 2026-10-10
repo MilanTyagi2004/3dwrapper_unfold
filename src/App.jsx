@@ -3,6 +3,7 @@ import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import DemonicStrips from './components/DemonicStrips'
 import EmailCollect from './components/founder card/EmailCollect'
+import FaqSection from './components/FaqSection'
 import Footer from './components/Footer'
 import CustomCursor from './components/CustomCursor'
 import AdminPortal from './components/AdminPortal'
@@ -52,6 +53,7 @@ function App() {
       <div className="below-hero-wrapper">
         <DemonicStrips />
         <EmailCollect />
+        <FaqSection />
         <Footer />
       </div>
     </div>
