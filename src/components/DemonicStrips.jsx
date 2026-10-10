@@ -61,14 +61,14 @@ const STAGES = [
     eyebrow: '01 — UNPACK',
     headline: 'Engineered\nfor the\nobsessed.',
     description: 'Flip-top pocket pack. Precision cardstock casing\nhousing 4 single-serve oral strip pouches.',
-    meta: 'FLIP-TOP PACK · 4 STRIPS'
+    meta: 'FLIP-TOP PACK · 10 STRIPS'
   },
   {
     id: 'dispense',
     eyebrow: '02 — DISPENSE',
     headline: 'One Strip.\nPure Energy.',
     description: '',
-    meta: '45MG CAFFEINE · POCKET READY'
+    meta: '45MG NATURAL CAFFEINE + B VITAMINS'
   },
   {
     id: 'peel',

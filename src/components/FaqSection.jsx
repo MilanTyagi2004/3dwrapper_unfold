@@ -12,7 +12,7 @@ const faqs = [
   {
     id: '02',
     question: 'What’s inside each strip?',
-    answer: '45mg caffeine + vitamin B12, B7, B6 & E'
+    answer: '45 mg of natural caffeine + Vitamins B12, B7, B6 & vitamin E\nNote: Our caffeine is naturally sourced from green tea extract'
   },
   {
     id: '03',

@@ -109,7 +109,7 @@
 }
 
 /* ==============================================================
-   CENTER: NAVIGATION LINKS (Mathematically 50% Viewport Centered)
+   CENTER: NAVIGATION LINKS
    ============================================================== */
 .nav__links,
 .nav-links {
@@ -121,7 +121,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  gap: clamp(1rem, 2vw, 2rem);
   line-height: 1;
   pointer-events: auto;
 }
@@ -141,6 +141,7 @@
   position: relative;
   padding: 4px 0;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav__num {
@@ -152,13 +153,6 @@
 
 .nav__label {
   line-height: 1;
-}
-
-.nav__sep {
-  color: rgba(255, 255, 255, 0.18);
-  font-size: 0.75rem;
-  line-height: 1;
-  user-select: none;
 }
 
 .nav__link::after {
@@ -217,13 +211,10 @@
 }
 
 @keyframes navPulse {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
     opacity: 0.85;
   }
-
   50% {
     transform: scale(1.4);
     opacity: 1;
@@ -242,77 +233,77 @@
   line-height: 1;
 }
 
-.nav__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 16px;
-  box-sizing: border-box;
-  background: transparent;
-  border: 1px solid rgba(234, 9, 23, 0.5);
-  border-radius: 2px;
-  color: #FFFFE1;
-  text-decoration: none;
-  font-family: var(--font-barlow);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  line-height: 1;
-  transition: all 0.22s ease;
-  white-space: nowrap;
-}
-
-.nav__btn-arrow {
-  color: #EA0917;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-
-.nav__btn:hover {
-  background: #EA0917;
-  border-color: #EA0917;
-  color: #000000;
-  box-shadow: 0 0 20px rgba(234, 9, 23, 0.45);
-}
-
-.nav__btn:hover .nav__btn-arrow {
-  color: #000000;
-  transform: translateX(3px);
-}
-
 /* ==============================================================
    RESPONSIVE BREAKPOINTS
    ============================================================== */
-@media (max-width: 820px) {
-  .nav__inner {
-    display: flex;
-    justify-content: space-between;
-  }
 
+/* Tablet & Smaller Laptops: switch from absolute center to flex distribution to avoid overlap */
+@media (max-width: 1200px) {
   .nav__links,
   .nav-links {
-    display: none;
-  }
-
-  .nav__tagline {
-    display: none;
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    flex: 1;
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 990px) {
+  .nav__inner {
+    padding: 0 20px;
+  }
   .nav__status {
+    display: none; /* Hide status badge to make room for links */
+  }
+}
+
+@media (max-width: 820px) {
+  .nav__tagline {
     display: none;
   }
-
-  .nav__btn {
-    padding: 0 12px;
-    font-size: 0.72rem;
+  
+  .nav__links,
+  .nav-links {
+    gap: 1rem;
+    justify-content: flex-end;
   }
+  
+  .nav__link {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+}
 
+@media (max-width: 600px) {
+  .nav__inner {
+    padding: 0 12px;
+  }
+  
+  .nav__brand {
+    gap: 8px;
+  }
+  
+  .nav__icon {
+    width: 24px;
+    height: 26px;
+  }
+  
   .nav__title {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+  }
+  
+  .nav__num {
+    display: none; /* Hide numbers on mobile to fit text */
+  }
+  
+  .nav__links,
+  .nav-links {
+    gap: 0.75rem;
+  }
+  
+  .nav__link {
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
   }
 }

@@ -51,6 +51,22 @@ export default function Navbar() {
             <span className="nav__num">01</span>
             <span className="nav__label">OUR PRODUCT</span>
           </a>
+          <a 
+            href="#faq" 
+            className="nav__link" 
+            onClick={(e) => scrollToSection(e, 'faq')}
+          >
+            <span className="nav__num">02</span>
+            <span className="nav__label">FAQ</span>
+          </a>
+          <a 
+            href="#founder-pass" 
+            className="nav__link" 
+            onClick={(e) => scrollToSection(e, 'founder-pass')}
+          >
+            <span className="nav__num">03</span>
+            <span className="nav__label">EARLY ACCESS</span>
+          </a>
         </div>
 
         {/* Status Badge & Minimal CTA */}
