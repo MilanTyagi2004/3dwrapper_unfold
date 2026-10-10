@@ -718,7 +718,7 @@ export default function EmailCollect() {
             isActive={true}
           />
           <p className="ec__desc">
-            Join to get exclusive access to inner-circle
+            Join the waitlist. Get first access to the drop + inner-circle perks.
           </p>
         </div>
 

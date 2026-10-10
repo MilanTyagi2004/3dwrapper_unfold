@@ -146,7 +146,7 @@
 .ec__desc {
   /* Brand book: body copy set in Barlow Condensed Regular */
   font-family: var(--ec-font-tech);
-  font-size: clamp(0.88rem, 1.8vw, 1.02rem);
+  font-size: clamp(1.20rem, 2.4vw, 1.35rem);
   font-weight: 400;
   line-height: 1.58;
   letter-spacing: 0.02em;
@@ -291,9 +291,21 @@
 }
 
 @keyframes ecShake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 .ec__submit-btn {
