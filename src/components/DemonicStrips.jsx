@@ -110,17 +110,17 @@ const INITIAL_ANIM = {
   packetRotY: -0.20,
   packetRotZ: 0.0,
   packetScale: 0.75,
-  packetOpacity: 1.0,
+  packetOpacity: 0.0, // Fixed: Was 1.0, causing the packet to be visible before the box fades in
   packetCrumple: 0,
   peel: 0,
-  backOpacity: 1.0,
+  backOpacity: 0.0, // Fixed: Was 1.0
   stripX: 0.0,
   stripY: -0.12,
   stripZ: 0.008,
   stripRotX: 0,
   stripRotY: 0,
   stripRotZ: 0,
-  stripOpacity: 1.0,
+  stripOpacity: 0.0, // Fixed: Hide initially so it doesn't show through the box during fade in
   stripScale: 1.0,
   dissolveProgress: 0,
   timelineProgress: 0
@@ -147,13 +147,13 @@ const DemonicStrips = () => {
             if (timelineRef.current) {
               timelineRef.current.play();
             }
-          }, 800);
+          }, 1000); // Wait exactly 1 sec after arriving
           if (sectionRef.current) {
             observer.unobserve(sectionRef.current);
           }
         }
       },
-      { rootMargin: '150px' }
+      { threshold: 0.3 } // Sirf tab start hoga jab 30% section screen par dikh jaye
     );
 
     if (sectionRef.current) {
@@ -211,6 +211,14 @@ const DemonicStrips = () => {
       duration: 0.45,
       ease: 'power2.out'
     }, 0.0);
+
+    // SNAP internals to visible ONLY AFTER the box is 100% solid (0.5s)
+    // This prevents the packet & strip from showing through the semi-transparent box during fade in
+    tl.set(animObj, {
+      packetOpacity: 1.0,
+      backOpacity: 1.0,
+      stripOpacity: 1.0
+    }, 0.5);
 
     // Rotation: subtle 25° sweep — front face visible 100% of the time
     tl.to(animObj, {
@@ -450,7 +458,7 @@ const DemonicStrips = () => {
               frameloop={isVisible ? 'always' : 'never'}
               camera={{ position: [0.14, 0, 8.6], fov: 43 }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', localClippingEnabled: true }}
-              dpr={[1, 1.5]}
+              dpr={[1, typeof window !== 'undefined' && window.innerWidth <= 768 ? 1.0 : 1.5]}
             >
               <ResponsiveCamera />
               {/* Soft, rich ambient illumination for pure matte diffuse red */}

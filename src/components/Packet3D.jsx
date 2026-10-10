@@ -204,8 +204,8 @@ function createSealedPouchTexture(baseImage, isBack = false) {
  * - Soft diffuse foil wrinkles (no sharp specular normal spikes)
  */
 function createFoilBumpTexture() {
-  const width = 1024;
-  const height = 1280;
+  const width = 512;
+  const height = 640;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;

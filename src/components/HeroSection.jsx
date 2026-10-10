@@ -37,10 +37,12 @@ export default function HeroSection() {
     if (leftAwakenVideoRef.current) {
       leftAwakenVideoRef.current.muted = awakenedSideRef.current !== 'left';
       leftAwakenVideoRef.current.volume = 0.9;
+      if (awakenedSideRef.current === 'left' && leftAwakenVideoRef.current.paused) leftAwakenVideoRef.current.play().catch(() => {});
     }
     if (rightAwakenVideoRef.current) {
       rightAwakenVideoRef.current.muted = awakenedSideRef.current !== 'right';
       rightAwakenVideoRef.current.volume = 0.9;
+      if (awakenedSideRef.current === 'right' && rightAwakenVideoRef.current.paused) rightAwakenVideoRef.current.play().catch(() => {});
     }
   };
 
@@ -69,6 +71,7 @@ export default function HeroSection() {
             if (isMutedRef.current) {
               video.volume = 0;
               video.muted = true;
+              if (!isInViewRef.current) video.pause();
             }
             clearInterval(interval);
           } else {
@@ -78,6 +81,7 @@ export default function HeroSection() {
         fadeIntervalsRef.current.push(interval);
       } else if (video) {
         video.muted = true;
+        if (!isInViewRef.current) video.pause();
       }
     });
   };
@@ -169,6 +173,7 @@ export default function HeroSection() {
         if (!inView) {
           muteAudio();
         } else {
+          if (idleVideoRef.current && idleVideoRef.current.paused) idleVideoRef.current.play().catch(() => {});
           unmuteAndPlay();
         }
       },
