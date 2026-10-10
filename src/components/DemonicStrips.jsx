@@ -212,13 +212,24 @@ const DemonicStrips = () => {
       ease: 'power2.out'
     }, 0.0);
 
-    // SNAP internals to visible ONLY AFTER the box is 100% solid (0.5s)
-    // This prevents the packet & strip from showing through the semi-transparent box during fade in
-    tl.set(animObj, {
+    // Actively LOCK internals to 0.0 opacity during the entire box fade-in (0.0s to 0.49s)
+    // This prevents ANY GSAP loop glitches where previous values bleed over
+    tl.to(animObj, {
+      packetOpacity: 0.0,
+      backOpacity: 0.0,
+      stripOpacity: 0.0,
+      duration: 0.49,
+      ease: 'none'
+    }, 0.0);
+
+    // SNAP internals to visible (1.0) exactly when the box is 100% solid
+    tl.to(animObj, {
       packetOpacity: 1.0,
       backOpacity: 1.0,
-      stripOpacity: 1.0
-    }, 0.5);
+      stripOpacity: 1.0,
+      duration: 0.01,
+      ease: 'none'
+    }, 0.49);
 
     // Rotation: subtle 25° sweep — front face visible 100% of the time
     tl.to(animObj, {
