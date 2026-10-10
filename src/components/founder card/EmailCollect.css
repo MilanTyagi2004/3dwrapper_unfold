@@ -146,7 +146,7 @@
 .ec__desc {
   /* Brand book: body copy set in Barlow Condensed Regular */
   font-family: var(--ec-font-tech);
-  font-size: clamp(1.20rem, 2.4vw, 1.35rem);
+  font-size: clamp(1.08rem, 2.2vw, 1.25rem);
   font-weight: 400;
   line-height: 1.58;
   letter-spacing: 0.02em;
