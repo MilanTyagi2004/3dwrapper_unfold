@@ -27,6 +27,15 @@
   text-shadow: 0 0 20px rgba(234, 9, 23, 0.3);
 }
 
+.faq__headline .liquid-word:not(:last-child) {
+  margin-right: 0;
+  /* Fix LiquidHeadline double spacing bug */
+}
+
+.faq__headline .liquid-space {
+  width: 0.3em;
+}
+
 .faq__subheadline {
   font-family: var(--ec-font-tech, var(--font-barlow, sans-serif));
   font-size: 1rem;
@@ -58,7 +67,8 @@
   width: 100%;
   background: none;
   border: none;
-  padding: 1.5rem 0; /* Reduced from 2.5rem */
+  padding: 1.5rem 0;
+  /* Reduced from 2.5rem */
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -79,7 +89,8 @@
 .faq__q-text-group {
   display: flex;
   align-items: flex-start;
-  gap: 1rem; /* Reduced from 1.5rem */
+  gap: 1rem;
+  /* Reduced from 1.5rem */
   flex: 1;
 }
 
@@ -120,8 +131,10 @@
 }
 
 .faq__answer {
-  padding: 0 0 2rem 0; /* Reduced from 3rem */
-  padding-left: calc(1rem + 1.15rem + 0.5rem); /* Updated for 1rem gap */
+  padding: 0 0 2rem 0;
+  /* Reduced from 3rem */
+  padding-left: calc(1rem + 1.15rem + 0.5rem);
+  /* Updated for 1rem gap */
 }
 
 .faq__answer p {
@@ -142,7 +155,7 @@
   .faq-section {
     padding: 4rem 1.25rem 6rem 1.25rem;
   }
-  
+
   .faq__question-btn {
     padding: 1.5rem 0;
     gap: 1rem;
@@ -153,7 +166,8 @@
   }
 
   .faq__answer {
-    padding-left: 0; /* On mobile, flush left looks better for limited width */
+    padding-left: 0;
+    /* On mobile, flush left looks better for limited width */
   }
 
   .faq__number {
