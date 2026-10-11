@@ -9,7 +9,6 @@ import {
   createFrontPeelGeometry
 } from './pouchGeometry';
 
-// Flip-Top Cigarette Box Dimensions (Proportional to box image.png: 767w x 386 lid / 939 body)
 export const BOX_W = 2.68;
 export const BOX_D = 0.98;
 export const BODY_H = 3.28;
@@ -35,25 +34,30 @@ function SealedPouch({ position, rotation, frontMat, backMat }) {
  * High-fidelity 3D Flip-Top Cigarette Box Component
  */
 export function CigaretteBox({ animRef }) {
-  // Load front textures cropped directly from box image.png + sides, back, and pouch textures
+  // Box face textures generated from "backside final design.pdf" dieline
+  // (front panel, left/right side panels with icons, back info panel) + pouch textures
   const [
     lidTexture,
     bodyTexture,
     sideTexture,
+    sideLeftTexture,
+    sideRightTexture,
     backTexture,
     pouchFront,
     pouchBack
   ] = useTexture([
-    '/box-lid.png',
-    '/box-body.png',
-    '/box-side.png',
-    '/box-back.png',
+    '/box-lid.png?v=5',
+    '/box-body.png?v=4',
+    '/box-side.png?v=4',
+    '/box-side-left.png?v=4',
+    '/box-side-right.png?v=4',
+    '/box-back.png?v=4',
     '/pouch-front.png',
     '/pouch-back.png'
   ]);
 
   // Ensure sRGB color space & high anisotropy for ultra-sharp packaging
-  [lidTexture, bodyTexture, sideTexture, backTexture, pouchFront, pouchBack].forEach((tex) => {
+  [lidTexture, bodyTexture, sideTexture, sideLeftTexture, sideRightTexture, backTexture, pouchFront, pouchBack].forEach((tex) => {
     if (tex && tex.colorSpace !== THREE.SRGBColorSpace) {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = 16;
@@ -61,10 +65,10 @@ export function CigaretteBox({ animRef }) {
     }
   });
 
-  // Base crimson red paperboard color
-  const RED_COLOR = '#cf0f1a';
+  // Base paperboard red (sampled from the new dieline artwork)
+  const RED_COLOR = '#ff2e17';
 
-  // Front Lid Material (with cropped "FOR THE OBSESSED" texture)
+  // Front Lid Material (plain red lid flap from the new dieline)
   const lidFrontMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
       map: lidTexture,
@@ -78,7 +82,7 @@ export function CigaretteBox({ animRef }) {
     });
   }, [lidTexture]);
 
-  // Front Body Material (with cropped "DEMONIC FUEL" eye texture)
+  // Front Body Material (new front panel: DEMONIC FUEL wordmark)
   const bodyFrontMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
       map: bodyTexture,
@@ -105,6 +109,33 @@ export function CigaretteBox({ animRef }) {
       opacity: 1.0
     });
   }, [sideTexture]);
+
+  // Body side panels: left = Energy / Focus / Vegan / No Sugar, right = Peel / Place / Possessed
+  const boxSideLeftMat = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      map: sideLeftTexture,
+      roughness: 0.36,
+      metalness: 0.02,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.35,
+      side: THREE.FrontSide,
+      transparent: false,
+      opacity: 1.0
+    });
+  }, [sideLeftTexture]);
+
+  const boxSideRightMat = useMemo(() => {
+    return new THREE.MeshPhysicalMaterial({
+      map: sideRightTexture,
+      roughness: 0.36,
+      metalness: 0.02,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.35,
+      side: THREE.FrontSide,
+      transparent: false,
+      opacity: 1.0
+    });
+  }, [sideRightTexture]);
 
   const boxBackMat = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
@@ -147,7 +178,7 @@ export function CigaretteBox({ animRef }) {
   // Inner Collar / Throat Material (sleek matte charcoal with subtle red glow)
   const collarMat = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: 0x4A0808,   // dark burgundy — same red family as box, clearly darker (inner cardstock feel)
+      color: RED_COLOR,  // printed red collar, matching the new dieline artwork
       roughness: 0.65,   // matte cardstock texture
       metalness: 0.05,
       side: THREE.DoubleSide,
@@ -280,7 +311,7 @@ export function CigaretteBox({ animRef }) {
     const isFading = boxOpacity < 0.999;
 
     // All box panels follow global boxOpacity (entry fade-in, exit fade-out)
-    [lidFrontMat, bodyFrontMat, boxSideMat, boxBackMat, boxPlainRedMat, interiorFoilMat, sealedFrontMat, sealedBackMat].forEach((mat) => {
+    [lidFrontMat, bodyFrontMat, boxSideMat, boxSideLeftMat, boxSideRightMat, boxBackMat, boxPlainRedMat, interiorFoilMat, sealedFrontMat, sealedBackMat].forEach((mat) => {
       if (mat) {
         mat.opacity = boxOpacity;
         mat.transparent = isFading;
@@ -319,7 +350,7 @@ export function CigaretteBox({ animRef }) {
         ============================================================
       */}
       <group position={[0, 0, 0]}>
-        {/* Front Panel (box-body.png: DEMONIC FUEL, horned eye, HELL MINT) */}
+        {/* Front Panel (box-body.png: PRESS tab, EST 2026, DEMONIC FUEL, 45mg Natural Caffeine Strips) */}
         <mesh
           geometry={bodyFrontGeom}
           material={bodyFrontMat}
@@ -337,20 +368,20 @@ export function CigaretteBox({ animRef }) {
           receiveShadow
         />
 
-        {/* Left Side Panel (with vertical branding & barcode) */}
+        {/* Left Side Panel (Energy / Focus / Vegan / No Sugar icons) */}
         <mesh
           geometry={bodySideGeom}
-          material={boxSideMat}
+          material={boxSideLeftMat}
           position={[-BOX_W / 2, -BODY_H / 2, 0]}
           rotation={[0, -Math.PI / 2, 0]}
           castShadow
           receiveShadow
         />
 
-        {/* Right Side Panel */}
+        {/* Right Side Panel (Peel / Place / Possessed icons) */}
         <mesh
           geometry={bodySideGeom}
-          material={boxSideMat}
+          material={boxSideRightMat}
           position={[BOX_W / 2, -BODY_H / 2, 0]}
           rotation={[0, Math.PI / 2, 0]}
           castShadow
@@ -458,7 +489,7 @@ export function CigaretteBox({ animRef }) {
       <group ref={lidHingeRef} position={[0, 0, -BOX_D / 2]}>
         {/* Relative to hinge [0, 0, -BOX_D / 2], the lid center is at [0, LID_H / 2, BOX_D / 2] */}
         <group position={[0, LID_H / 2, BOX_D / 2]}>
-          {/* Lid Front Panel (box-lid.png: "FOR THE OBSESSED") */}
+          {/* Lid Front Panel (box-lid.png: plain red lid flap per dieline) */}
           <mesh
             geometry={lidFrontGeom}
             material={lidFrontMat}
@@ -473,10 +504,10 @@ export function CigaretteBox({ animRef }) {
             rotation={[0, Math.PI, 0]}
           />
 
-          {/* Lid Back Panel */}
+          {/* Lid Back Panel (plain red — back info artwork lives on the body back) */}
           <mesh
             geometry={lidBackGeom}
-            material={boxBackMat}
+            material={boxPlainRedMat}
             position={[0, 0, -BOX_D / 2]}
             rotation={[0, Math.PI, 0]}
           />
