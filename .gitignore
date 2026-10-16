@@ -24,3 +24,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Standalone Admin Portal & Scratch
+demonic-admin-portal/
+scratch/
