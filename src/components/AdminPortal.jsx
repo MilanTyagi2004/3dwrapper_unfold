@@ -1,14 +1,32 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
 import './AdminPortal.css';
 
-const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {};
-const ADMIN_PASSKEY = env.VITE_ADMIN_PASSKEY || 'DEMONIC2026';
+// NOTE: No keys, passwords or database URLs live in the frontend.
+// All data access goes through server-only /api routes (see /api/admin/*),
+// and the admin session is an HttpOnly cookie that JavaScript cannot read.
+
+// Escape a value for CSV and neutralise spreadsheet formula injection
+// (user-submitted names like "=HYPERLINK(...)" would otherwise execute in Excel).
+const csvCell = (value) => {
+  let s = value == null ? '' : String(value);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
+};
+
+const api = (path, options = {}) =>
+  fetch(`/api/admin/${path}`, {
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
 
 export default function AdminPortal() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [passkeyInput, setPasskeyInput] = useState('');
-  const [authError, setAuthError] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [authError, setAuthError] = useState('');
 
   const [activeTab, setActiveTab] = useState('passes'); // 'passes' | 'newsletter'
   const [founderPasses, setFounderPasses] = useState([]);
@@ -17,43 +35,41 @@ export default function AdminPortal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState(null);
 
-  // Check if authenticated in current browser session
+  const resetToLocked = () => {
+    setIsAuthenticated(false);
+    setFounderPasses([]);
+    setNewsletterSubs([]);
+  };
+
+  // Restore an existing server session (cookie) on load
   useEffect(() => {
-    const savedAuth = sessionStorage.getItem('df_admin_auth');
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    let active = true;
+    api('session')
+      .then((r) => active && setIsAuthenticated(r.ok))
+      .catch(() => {})
+      .finally(() => active && setAuthChecking(false));
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // Fetch data from Supabase
+  // Fetch data via the server
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Fetch Founder Passes
-      const { data: passesData, error: passesErr } = await supabase
-        .from('founder_passes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (passesErr) {
-        console.error('Error fetching founder passes:', passesErr);
-      } else {
-        setFounderPasses(passesData || []);
+      const r = await api('data');
+      if (r.status === 401) {
+        resetToLocked();
+        setAuthError('SESSION EXPIRED // SIGN IN AGAIN');
+        return;
       }
-
-      // 2. Fetch Newsletter
-      const { data: newsData, error: newsErr } = await supabase
-        .from('newsletter_subscribers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (newsErr) {
-        console.error('Error fetching newsletter:', newsErr);
-      } else {
-        setNewsletterSubs(newsData || []);
+      if (r.ok) {
+        const { passes, newsletter } = await r.json();
+        setFounderPasses(passes || []);
+        setNewsletterSubs(newsletter || []);
       }
-    } catch (err) {
-      console.error('Supabase query error:', err);
+    } catch {
+      /* network error — keep current data */
     } finally {
       setLoading(false);
     }
@@ -65,21 +81,34 @@ export default function AdminPortal() {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (passkeyInput.trim() === ADMIN_PASSKEY) {
-      setIsAuthenticated(true);
-      setAuthError(false);
-      sessionStorage.setItem('df_admin_auth', 'true');
-    } else {
-      setAuthError(true);
+    if (signingIn) return;
+    setSigningIn(true);
+    setAuthError('');
+
+    try {
+      const r = await api('login', {
+        method: 'POST',
+        body: JSON.stringify({ email: emailInput.trim(), password: passwordInput }),
+      });
+      if (r.ok) setIsAuthenticated(true);
+      else setAuthError('INVALID CREDENTIALS // ACCESS DENIED');
+    } catch {
+      setAuthError('NETWORK ERROR // TRY AGAIN');
     }
+
+    setPasswordInput('');
+    setSigningIn(false);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('df_admin_auth');
-    setIsAuthenticated(false);
-    setPasskeyInput('');
+  const handleLogout = async () => {
+    try {
+      await api('logout', { method: 'POST' });
+    } catch {
+      /* ignore */
+    }
+    resetToLocked();
   };
 
   // Filtered passes
@@ -122,19 +151,19 @@ export default function AdminPortal() {
         'REGISTRATION DATE (UTC)',
       ];
       rows = founderPasses.map((p) => [
-        `"${p.member_id || ''}"`,
-        `"${p.name || ''}"`,
-        `"${p.email || ''}"`,
-        `"${p.phone || ''}"`,
-        `"${(p.tagline || '').replace(/"/g, '""')}"`,
-        `"${p.created_at ? new Date(p.created_at).toLocaleString() : ''}"`,
+        csvCell(p.member_id),
+        csvCell(p.name),
+        csvCell(p.email),
+        csvCell(p.phone),
+        csvCell(p.tagline),
+        csvCell(p.created_at ? new Date(p.created_at).toLocaleString() : ''),
       ]);
     } else if (type === 'newsletter') {
       fileName = `demonic_fuel_newsletter_${timestamp}.csv`;
       headers = ['EMAIL ADDRESS', 'SUBSCRIPTION DATE (UTC)'];
       rows = newsletterSubs.map((n) => [
-        `"${n.email || ''}"`,
-        `"${n.created_at ? new Date(n.created_at).toLocaleString() : ''}"`,
+        csvCell(n.email),
+        csvCell(n.created_at ? new Date(n.created_at).toLocaleString() : ''),
       ]);
     } else if (type === 'all') {
       fileName = `demonic_fuel_all_leads_${timestamp}.csv`;
@@ -149,21 +178,21 @@ export default function AdminPortal() {
       ];
       const pRows = founderPasses.map((p) => [
         '"FOUNDER PASS"',
-        `"${p.member_id || ''}"`,
-        `"${p.name || ''}"`,
-        `"${p.email || ''}"`,
-        `"${p.phone || ''}"`,
-        `"${(p.tagline || '').replace(/"/g, '""')}"`,
-        `"${p.created_at ? new Date(p.created_at).toLocaleString() : ''}"`,
+        csvCell(p.member_id),
+        csvCell(p.name),
+        csvCell(p.email),
+        csvCell(p.phone),
+        csvCell(p.tagline),
+        csvCell(p.created_at ? new Date(p.created_at).toLocaleString() : ''),
       ]);
       const nRows = newsletterSubs.map((n) => [
         '"NEWSLETTER"',
         '""',
         '""',
-        `"${n.email || ''}"`,
+        csvCell(n.email),
         '""',
         '""',
-        `"${n.created_at ? new Date(n.created_at).toLocaleString() : ''}"`,
+        csvCell(n.created_at ? new Date(n.created_at).toLocaleString() : ''),
       ]);
       rows = [...pRows, ...nRows];
     }
@@ -216,30 +245,52 @@ export default function AdminPortal() {
           <div className="ap-gate__badge">FACILITY 06 // CLASSIFIED ACCESS</div>
           <h2 className="ap-gate__title">DATA CONSOLE</h2>
           <p className="ap-gate__desc">
-            Authorized personnel only. Enter executive passkey to access live allocations and Excel exports.
+            Authorized personnel only. Sign in with your executive account to access live allocations and Excel exports.
           </p>
 
           <form onSubmit={handleLogin} className="ap-gate__form">
             <input
-              type="password"
-              placeholder="ENTER PASSKEY"
-              value={passkeyInput}
+              id="admin-email"
+              type="email"
+              placeholder="EXECUTIVE EMAIL (OPTIONAL)"
+              autoComplete="username"
+              value={emailInput}
               onChange={(e) => {
-                setPasskeyInput(e.target.value);
-                if (authError) setAuthError(false);
+                setEmailInput(e.target.value);
+                if (authError) setAuthError('');
               }}
               className={`ap-gate__input ${authError ? 'is-error' : ''}`}
+              disabled={authChecking}
+            />
+            <input
+              id="admin-password"
+              type="password"
+              placeholder="ENTER EXECUTIVE PASSWORD"
+              autoComplete="current-password"
+              value={passwordInput}
+              onChange={(e) => {
+                setPasswordInput(e.target.value);
+                if (authError) setAuthError('');
+              }}
+              className={`ap-gate__input ${authError ? 'is-error' : ''}`}
+              disabled={authChecking}
+              required
               autoFocus
             />
 
             {authError && (
-              <span className="ap-gate__error-msg">
-                ⚠ INVALID CIPHER // ACCESS DENIED
-              </span>
+              <span className="ap-gate__error-msg">⚠ {authError}</span>
             )}
 
-            <button type="submit" className="ap-gate__btn">
-              <span>AUTHENTICATE</span>
+            <button
+              id="admin-login-btn"
+              type="submit"
+              className="ap-gate__btn"
+              disabled={authChecking || signingIn}
+            >
+              <span>
+                {authChecking ? 'CHECKING SESSION…' : signingIn ? 'VERIFYING…' : 'AUTHENTICATE'}
+              </span>
               <span>→</span>
             </button>
           </form>
@@ -279,7 +330,7 @@ export default function AdminPortal() {
             type="button"
             className="ap-btn ap-btn--refresh"
             onClick={fetchData}
-            title="Fetch latest entries from Supabase"
+            title="Fetch latest entries"
           >
             <span className="ap-btn__icon">⟳</span>
             <span>SYNC DATA</span>
@@ -343,7 +394,7 @@ export default function AdminPortal() {
             <span className="ap-metric-card__label">MAINFRAME STATUS</span>
             <div className="ap-metric-card__status-row">
               <span className="ap-status-dot" />
-              <span className="ap-status-text">SUPABASE LIVE</span>
+              <span className="ap-status-text">DATABASE LIVE</span>
             </div>
             <span className="ap-metric-card__hint">Real-Time Sync Protocol</span>
           </div>

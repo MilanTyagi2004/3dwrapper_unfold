@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
 import './Footer.css';
 
 export default function Footer() {
@@ -37,16 +36,15 @@ export default function Footer() {
     if (cleanEmail) {
       setSubmitted(true);
 
-      // Asynchronously insert into Supabase newsletter_subscribers table
+      // Saved via server-only API route (no database keys in the browser)
       try {
-        const { error } = await supabase.from('newsletter_subscribers').insert([
-          { email: cleanEmail }
-        ]);
-        if (error) {
-          console.warn('[Supabase] Newsletter subscription note:', error.message);
-        }
-      } catch (err) {
-        console.warn('[Supabase] Newsletter subscription error:', err);
+        await fetch('/api/newsletter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: cleanEmail }),
+        });
+      } catch {
+        /* ignore network errors */
       }
 
       setTimeout(() => {

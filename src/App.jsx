@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import DemonicStrips from './components/DemonicStrips'
@@ -6,8 +6,10 @@ import EmailCollect from './components/founder card/EmailCollect'
 import FaqSection from './components/FaqSection'
 import Footer from './components/Footer'
 import CustomCursor from './components/CustomCursor'
-import AdminPortal from './components/AdminPortal'
 import './App.css'
+
+// Loaded only on admin routes so it isn't part of the main public bundle
+const AdminPortal = lazy(() => import('./components/AdminPortal'))
 
 function checkIsAdminRoute() {
   const path = window.location.pathname.toLowerCase()
@@ -40,7 +42,9 @@ function App() {
     return (
       <div className="app-container app-container--admin">
         <CustomCursor />
-        <AdminPortal />
+        <Suspense fallback={null}>
+          <AdminPortal />
+        </Suspense>
       </div>
     )
   }

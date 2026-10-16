@@ -14,7 +14,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeCanvas } from 'qrcode.react'
 import LiquidHeadline from '../LiquidHeadline'
-import { supabase } from '../../lib/supabase'
 import './EmailCollect.css'
 
 /* ── Constants & Helpers ───────────────────────────────── */
@@ -40,6 +39,15 @@ const VERIFY_STEPS = [
   'ASSIGNING FOUNDER ALLOCATION...',
   'ENCRYPTING MEMBER CIPHER...',
   'ACCESS GRANTED.'
+]
+
+// 5 Sequenced verification checkpoints for retrieval
+const RETRIEVE_STEPS = [
+  'SEARCHING CULT MAINFRAME...',
+  'VERIFYING REGISTERED CIPHER...',
+  'LOCATING FOUNDER ALLOCATION...',
+  'DECRYPTING 3D MEMBER ASSETS...',
+  'ACCESS GRANTED // WELCOME BACK.'
 ]
 
 // Generate a unique high-status Member Pass ID for every submission
@@ -75,6 +83,7 @@ function roundRect(ctx, x, y, w, h, r) {
 
 export default function EmailCollect() {
   const [phase, setPhase] = useState('form') // 'form' | 'verifying' | 'card'
+  const [mode, setMode] = useState('register') // 'register' | 'retrieve'
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -94,7 +103,7 @@ export default function EmailCollect() {
   const rafRef = useRef(null)
   const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0, px: 50, py: 50 })
 
-  /* ── Form Submit: Transition to Cinematic Verification ── */
+  /* ── 1. Register New Founder Pass ── */
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!email.trim() || !phone.trim() || isChecking) return
@@ -105,52 +114,37 @@ export default function EmailCollect() {
 
     setIsChecking(true)
 
-    // 1. Check if email already registered in Supabase
-    try {
-      const { data: existing, error: checkErr } = await supabase
-        .from('founder_passes')
-        .select('id')
-        .eq('email', cleanEmail)
-        .limit(1)
-
-      if (existing && existing.length > 0) {
-        setIsChecking(false)
-        setErrorMessage('ACCESS PASS ALREADY ISSUED // THIS EMAIL IS ALREADY REGISTERED')
-        return
-      }
-    } catch (err) {
-      console.warn('[Supabase] Duplicate pre-check note:', err)
-    }
+    // Saved via server-only API route (no database keys in the browser).
+    // Duplicate emails are rejected by a unique index → HTTP 409.
 
     const displayName = (name.trim() || cleanEmail.split('@')[0]).toUpperCase()
     const generatedId = generateMemberId()
     const assignedTagline = pickTagline()
 
-    // 2. Insert record into Supabase
     try {
-      const { error } = await supabase.from('founder_passes').insert([
-        {
+      const res = await fetch('/api/founder-pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: displayName,
           email: cleanEmail,
-          phone: cleanPhone || null,
-          member_id: generatedId,
+          phone: cleanPhone,
+          memberId: generatedId,
           tagline: assignedTagline,
-        }
-      ])
-      if (error) {
-        if (
-          error.code === '23505' ||
-          error.message?.toLowerCase().includes('duplicate') ||
-          error.message?.toLowerCase().includes('unique')
-        ) {
-          setIsChecking(false)
-          setErrorMessage('ACCESS PASS ALREADY ISSUED // THIS EMAIL IS ALREADY REGISTERED')
-          return
-        }
-        console.warn('[Supabase] Note on founder pass save:', error.message)
+        }),
+      })
+      if (res.status === 409) {
+        setIsChecking(false)
+        setErrorMessage('ACCESS PASS ALREADY ISSUED // THIS EMAIL IS ALREADY REGISTERED')
+        return
       }
-    } catch (err) {
-      console.warn('[Supabase] Error during submission:', err)
+      if (res.status === 400) {
+        setIsChecking(false)
+        setErrorMessage('INVALID DETAILS // CHECK EMAIL AND PHONE NUMBER')
+        return
+      }
+    } catch {
+      /* network error — still show the card experience */
     }
 
     setIsChecking(false)
@@ -159,6 +153,59 @@ export default function EmailCollect() {
     setTagline(assignedTagline)
     setPhase('verifying')
     setVerifyIdx(0)
+  }
+
+  /* ── 2. Retrieve Existing Cult Pass (Email + Phone) ── */
+  const handleRetrieve = async (e) => {
+    e.preventDefault()
+    if (!email.trim() || !phone.trim() || isChecking) return
+    setErrorMessage('')
+
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanPhone = phone.trim()
+
+    setIsChecking(true)
+
+    try {
+      const res = await fetch('/api/retrieve-pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: cleanEmail,
+          phone: cleanPhone,
+        }),
+      })
+
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setIsChecking(false)
+        setErrorMessage(data?.error || 'NO MATCHING CULT PASS FOUND // CHECK EMAIL & PHONE')
+        return
+      }
+
+      setIsChecking(false)
+      setName(data.pass?.name || cleanEmail.split('@')[0].toUpperCase())
+      setMemberId(data.pass?.memberId || 'DF-CULT-PASS')
+      setTagline(data.pass?.tagline || pickTagline())
+      setPhase('verifying')
+      setVerifyIdx(0)
+    } catch {
+      setIsChecking(false)
+      setErrorMessage('NETWORK ERROR // UNABLE TO REACH CULT SERVERS')
+    }
+  }
+
+  /* ── 3. Reset To Main Form ── */
+  const handleReset = () => {
+    setPhase('form')
+    setName('')
+    setEmail('')
+    setPhone('')
+    setMemberId('')
+    setTagline('')
+    setErrorMessage('')
+    setIsChecking(false)
   }
 
   /* ── Cinematic Verification Stepped Sequencer (~1.8s total) ── */
@@ -529,8 +576,8 @@ export default function EmailCollect() {
           })
           return
         }
-      } catch (err) {
-        console.warn('Share API failed:', err)
+      } catch {
+        /* share cancelled or not supported */
       }
     }
 
@@ -670,8 +717,8 @@ export default function EmailCollect() {
           })
           return
         }
-      } catch (err) {
-        console.warn('Share API failed:', err)
+      } catch {
+        /* share cancelled */
       }
     }
 
@@ -685,17 +732,6 @@ export default function EmailCollect() {
       link.click()
     }
   }, [memberId, renderCardToCanvas])
-
-  /* ── Reset to Form Phase ── */
-  const handleReset = () => {
-    setPhase('form')
-    setName('')
-    setEmail('')
-    setPhone('')
-    setMemberId('')
-    setTagline('')
-    setVerifyIdx(0)
-  }
 
   return (
     <section id="founder-pass" className="ec">
@@ -712,42 +748,76 @@ export default function EmailCollect() {
             isActive={true}
           />
           <LiquidHeadline
-            headline="CLAIM YOUR CULT CARD"
+            headline={mode === 'retrieve' ? "ACCESS YOUR CULT PASS" : "CLAIM YOUR CULT CARD"}
             as="h3"
             className="ec__headline"
             isActive={true}
           />
           <p className="ec__desc">
-            Join the waitlist. Get first access to the drop + inner-circle perks.
+            {mode === 'retrieve'
+              ? 'Already registered? Enter your email and phone number to retrieve your official 3D Founder Card.'
+              : 'Join the waitlist. Get first access to the drop + inner-circle perks.'}
           </p>
         </div>
+
+        {/* Mode Selector Tabs (Join vs Already Member) */}
+        {phase === 'form' && (
+          <div className="ec__mode-selector">
+            <button
+              type="button"
+              className={`ec__mode-tab ${mode === 'register' ? 'is-active' : ''}`}
+              onClick={() => {
+                setMode('register')
+                setErrorMessage('')
+              }}
+            >
+              <span className="ec__mode-tab-icon">✦</span>
+              <span>JOIN THE CULT</span>
+            </button>
+            <button
+              type="button"
+              className={`ec__mode-tab ${mode === 'retrieve' ? 'is-active' : ''}`}
+              onClick={() => {
+                setMode('retrieve')
+                setErrorMessage('')
+              }}
+            >
+              <span className="ec__mode-tab-icon">◈</span>
+              <span>ALREADY A MEMBER?</span>
+            </button>
+          </div>
+        )}
 
         {/* ───── Phase 1: Input Form ───── */}
         <AnimatePresence mode="wait">
           {phase === 'form' && (
             <motion.form
-              key="form"
+              key={`form-${mode}`}
               className="ec__form"
-              onSubmit={handleSubmit}
-              initial={{ opacity: 0, y: 25 }}
+              onSubmit={mode === 'retrieve' ? handleRetrieve : handleSubmit}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.45 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
             >
               <div className="ec__form-grid">
-                <div className="ec__field">
-                  <label className="ec__label">01 // NAME</label>
-                  <input
-                    type="text"
-                    placeholder="Full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="ec__input"
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="ec__field">
-                  <label className="ec__label">02 // EMAIL *</label>
+                {mode === 'register' && (
+                  <div className="ec__field">
+                    <label className="ec__label">01 // NAME</label>
+                    <input
+                      type="text"
+                      placeholder="Full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="ec__input"
+                      autoComplete="name"
+                    />
+                  </div>
+                )}
+                <div className={`ec__field ${mode === 'retrieve' ? 'ec__field--full' : ''}`}>
+                  <label className="ec__label">
+                    {mode === 'retrieve' ? '01 // REGISTERED EMAIL *' : '02 // EMAIL *'}
+                  </label>
                   <input
                     type="email"
                     placeholder="name@email.com"
@@ -763,11 +833,11 @@ export default function EmailCollect() {
                 </div>
                 <div className="ec__field ec__field--full">
                   <label className="ec__label">
-                    03 // PHONE *
+                    {mode === 'retrieve' ? '02 // REGISTERED PHONE *' : '03 // PHONE *'}
                   </label>
                   <input
                     type="tel"
-                    placeholder="WE WON'T SPAM YOU"
+                    placeholder={mode === 'retrieve' ? 'ENTER REGISTERED NUMBER' : "WE WON'T SPAM YOU"}
                     value={phone}
                     onChange={(e) => {
                       setPhone(e.target.value)
@@ -783,20 +853,38 @@ export default function EmailCollect() {
               {/* Duplicate Email / Error Alert Badge */}
               {errorMessage && (
                 <div className="ec__error-badge">
-                  <span className="ec__error-icon">⚠</span>
-                  <span className="ec__error-text">{errorMessage}</span>
+                  <div className="ec__error-row">
+                    <span className="ec__error-icon">⚠</span>
+                    <span className="ec__error-text">{errorMessage}</span>
+                  </div>
+                  {mode === 'register' && errorMessage.includes('ALREADY REGISTERED') && (
+                    <button
+                      type="button"
+                      className="ec__retrieve-link-btn"
+                      onClick={() => {
+                        setMode('retrieve')
+                        setErrorMessage('')
+                      }}
+                    >
+                      ALREADY A MEMBER? RETRIEVE YOUR PASS →
+                    </button>
+                  )}
                 </div>
               )}
 
               <button type="submit" className="ec__submit-btn" disabled={isChecking}>
                 <span className="ec__submit-text">
-                  {isChecking ? 'VERIFYING CREDENTIALS...' : 'JOIN THE CULT'}
+                  {isChecking
+                    ? (mode === 'retrieve' ? 'SEARCHING ARCHIVES...' : 'VERIFYING CREDENTIALS...')
+                    : (mode === 'retrieve' ? 'RETRIEVE CULT PASS' : 'JOIN THE CULT')}
                 </span>
                 <span className="ec__submit-arrow">→</span>
               </button>
 
               <p className="ec__disclaimer">
-                ❖ NO SPAM. NO SIGNAL.
+                {mode === 'retrieve'
+                  ? '❖ BIOMETRICALLY ENCRYPTED ARCHIVES // 2026'
+                  : '❖ NO SPAM. NO SIGNAL.'}
               </p>
             </motion.form>
           )}
@@ -816,11 +904,13 @@ export default function EmailCollect() {
                 <div className="ec__scan-laser" />
 
                 <div className="ec__verify-header">
-                  <span className="ec__verify-badge">ENCRYPTION ENGINE // ACTIVE</span>
+                  <span className="ec__verify-badge">
+                    {mode === 'retrieve' ? 'ARCHIVE RETRIEVAL // ACTIVE' : 'ENCRYPTION ENGINE // ACTIVE'}
+                  </span>
                 </div>
 
                 <div className="ec__verify-list">
-                  {VERIFY_STEPS.map((stepMsg, i) => (
+                  {(mode === 'retrieve' ? RETRIEVE_STEPS : VERIFY_STEPS).map((stepMsg, i) => (
                     <motion.div
                       key={i}
                       className={`ec__verify-item ${i <= verifyIdx ? 'is-active' : ''} ${i === verifyIdx ? 'is-current' : ''}`}
