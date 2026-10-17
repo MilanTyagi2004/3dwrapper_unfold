@@ -1,0 +1,183 @@
+.demonic-404-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #050505;
+  color: #eaeaea;
+  font-family: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.demonic-404-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(223, 22, 22, 0.18) 0%, rgba(5, 5, 5, 0) 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.demonic-404-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.demonic-404-card {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+  width: 100%;
+  background: rgba(12, 12, 14, 0.94);
+  border: 1px solid rgba(223, 22, 22, 0.35);
+  border-radius: 4px;
+  padding: 44px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(223, 22, 22, 0.15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-sizing: border-box;
+}
+
+/* ── Centered Logo Header ── */
+.demonic-404-emblem-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.demonic-404-emblem {
+  width: 72px;
+  height: 78px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 0 16px rgba(223, 22, 22, 0.75));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.demonic-404-emblem:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 24px rgba(223, 22, 22, 0.95));
+}
+
+/* ── Status Pill ── */
+.demonic-404-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #df1616;
+  background: rgba(223, 22, 22, 0.08);
+  border: 1px solid rgba(223, 22, 22, 0.3);
+  padding: 6px 14px;
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
+.demonic-404-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #df1616;
+  box-shadow: 0 0 8px #df1616;
+  animation: demonic-404-pulse 1.8s infinite;
+}
+
+@keyframes demonic-404-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+/* ── 404 Numerical Code ── */
+.demonic-404-code {
+  font-size: clamp(72px, 16vw, 110px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-shadow: 0 0 24px rgba(223, 22, 22, 0.5);
+  margin-bottom: 10px;
+}
+
+.demonic-404-code span {
+  color: #df1616;
+}
+
+/* ── Text Copy ── */
+.demonic-404-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f0f0f0;
+  margin: 0 0 10px 0;
+}
+
+.demonic-404-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: #88888e;
+  text-transform: uppercase;
+  max-width: 380px;
+  margin: 0 0 28px 0;
+}
+
+/* ── Call to Action Button ── */
+.demonic-404-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #df1616;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 13px 28px;
+  border-radius: 2px;
+  border: 1px solid #ff3b3b;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 25px rgba(223, 22, 22, 0.4);
+}
+
+.demonic-404-btn:hover {
+  background: #ff2222;
+  box-shadow: 0 0 35px rgba(223, 22, 22, 0.7);
+  transform: translateY(-2px);
+}
+
+/* ── Footnote ── */
+.demonic-404-foot {
+  margin-top: 28px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #4a4a52;
+}
