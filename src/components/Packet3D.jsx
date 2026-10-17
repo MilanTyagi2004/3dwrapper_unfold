@@ -278,11 +278,14 @@ function createFoilBumpTexture() {
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.anisotropy = 16;
+  texture.anisotropy = 4;
   return texture;
 }
 
 export function PouchModel({ animProps, animRef }) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const targetAniso = isMobile ? 2 : 4;
+
   const [rawFrontTexture, rawBackTexture] = useTexture([
     '/pouch-front.png',
     '/pouch-back.png'
@@ -290,12 +293,12 @@ export function PouchModel({ animProps, animRef }) {
 
   if (rawFrontTexture && rawFrontTexture.colorSpace !== THREE.SRGBColorSpace) {
     rawFrontTexture.colorSpace = THREE.SRGBColorSpace;
-    rawFrontTexture.anisotropy = 16;
+    rawFrontTexture.anisotropy = targetAniso;
     rawFrontTexture.needsUpdate = true;
   }
   if (rawBackTexture && rawBackTexture.colorSpace !== THREE.SRGBColorSpace) {
     rawBackTexture.colorSpace = THREE.SRGBColorSpace;
-    rawBackTexture.anisotropy = 16;
+    rawBackTexture.anisotropy = targetAniso;
     rawBackTexture.needsUpdate = true;
   }
 
@@ -316,18 +319,18 @@ export function PouchModel({ animProps, animRef }) {
 
   const foilBumpTexture = useMemo(() => createFoilBumpTexture(), []);
 
-  // Geometries with exact cuts & notches matching reference photo
-  const backGeom = useMemo(() => createBackPouchGeometry(48, 64), []);
-  const innerCavityGeom = useMemo(() => createInnerCavityGeometry(32, 42), []);
-  const frontPeelGeom = useMemo(() => createFrontPeelGeometry(64, 88), []);
-  const oralStripGeom = useMemo(() => createOralStripGeometry(28, 38, 1.15, 1.68), []);
+  // Geometries with exact cuts & notches matching reference photo (adaptive mobile resolution)
+  const backGeom = useMemo(() => createBackPouchGeometry(isMobile ? 24 : 48, isMobile ? 32 : 64), [isMobile]);
+  const innerCavityGeom = useMemo(() => createInnerCavityGeometry(isMobile ? 18 : 32, isMobile ? 24 : 42), [isMobile]);
+  const frontPeelGeom = useMemo(() => createFrontPeelGeometry(isMobile ? 32 : 64, isMobile ? 44 : 88), [isMobile]);
+  const oralStripGeom = useMemo(() => createOralStripGeometry(isMobile ? 16 : 28, isMobile ? 22 : 38, 1.15, 1.68), [isMobile]);
 
   // 1. PURE MATTE RED PACKAGING MATERIAL (NO GLOSS, NO SHINY HIGHLIGHTS)
   const frontMaterial = useMemo(() => {
     const tex = frontTexture || rawFrontTexture;
     if (tex) {
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 16;
+      tex.anisotropy = targetAniso;
       tex.needsUpdate = true;
     }
     return new THREE.MeshStandardMaterial({
@@ -341,7 +344,7 @@ export function PouchModel({ animProps, animRef }) {
       opacity: 1.0,
       depthWrite: true
     });
-  }, [frontTexture, rawFrontTexture, foilBumpTexture]);
+  }, [frontTexture, rawFrontTexture, foilBumpTexture, targetAniso]);
 
   // Backside of curling foil layer (satin silver foil interior)
   const peelBacksideMaterial = useMemo(() => {
@@ -363,7 +366,7 @@ export function PouchModel({ animProps, animRef }) {
     const tex = backTexture || rawBackTexture;
     if (tex) {
       tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 16;
+      tex.anisotropy = targetAniso;
       tex.needsUpdate = true;
     }
     return new THREE.MeshStandardMaterial({
@@ -398,17 +401,14 @@ export function PouchModel({ animProps, animRef }) {
   const stripMaterial = useMemo(() => {
     return new THREE.MeshPhysicalMaterial({
       color: '#38bdf8',
-      roughness: 0.18,
-      metalness: 0.02,
-      transmission: 0.78,
-      thickness: 0.08,
-      ior: 1.45,
-      clearcoat: 0.80,
-      clearcoatRoughness: 0.20,
+      roughness: 0.12,
+      metalness: 0.05,
+      clearcoat: 0.70,
+      clearcoatRoughness: 0.15,
       emissive: '#0284c7',
-      emissiveIntensity: 0.18,
+      emissiveIntensity: 0.20,
       transparent: true,
-      opacity: 0.86,
+      opacity: 0.88,
       side: THREE.DoubleSide,
       clipShadows: true
     });
@@ -421,12 +421,12 @@ export function PouchModel({ animProps, animRef }) {
   }, []);
 
   const particlePlateletMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       color: '#38bdf8',
-      roughness: 0.20,
-      transmission: 0.75,
+      roughness: 0.25,
+      metalness: 0.15,
       emissive: '#0284c7',
-      emissiveIntensity: 0.16,
+      emissiveIntensity: 0.22,
       transparent: true,
       opacity: 0,
       side: THREE.DoubleSide
@@ -484,6 +484,7 @@ export function PouchModel({ animProps, animRef }) {
 
   // Mouse parallax
   const mouseLerp = useRef({ x: 0, y: 0 });
+  const lastDeformRef = useRef({ peel: -999, crumple: -999 });
 
   useFrame((state) => {
     const anim = animRef?.current || animProps || {};
@@ -508,15 +509,22 @@ export function PouchModel({ animProps, animRef }) {
     const stripScale = anim.stripScale ?? 1.0;
     const dissolveT = anim.dissolveProgress ?? 0;
 
-    // 1. Continuous Foil Peel & Hand-Paper Crumple Deformation
-    if (frontPeelMeshRef.current) {
-      updatePeelDeformation(frontPeelGeom, peel, packetCrumple);
-    }
-    if (backGeom) {
-      updateBackAndCavityCrumple(backGeom, packetCrumple, false);
-    }
-    if (innerCavityGeom) {
-      updateBackAndCavityCrumple(innerCavityGeom, packetCrumple, true);
+    // 1. Continuous Foil Peel & Hand-Paper Crumple Deformation (optimized: execute only when values change)
+    const peelDiff = Math.abs(lastDeformRef.current.peel - peel);
+    const crumpleDiff = Math.abs(lastDeformRef.current.crumple - packetCrumple);
+    if (peelDiff > 0.0003 || crumpleDiff > 0.0003) {
+      lastDeformRef.current.peel = peel;
+      lastDeformRef.current.crumple = packetCrumple;
+
+      if (frontPeelMeshRef.current) {
+        updatePeelDeformation(frontPeelGeom, peel, packetCrumple);
+      }
+      if (backGeom) {
+        updateBackAndCavityCrumple(backGeom, packetCrumple, false);
+      }
+      if (innerCavityGeom) {
+        updateBackAndCavityCrumple(innerCavityGeom, packetCrumple, true);
+      }
     }
 
     // Dynamic Opacity & Visibility
@@ -697,8 +705,9 @@ export function PouchModel({ animProps, animRef }) {
         ============================================================
       */}
       <group ref={packetGroupRef}>
-        {/* Soft contact shadow below packet */}
+        {/* Soft contact shadow below packet (baked to 1 frame to avoid per-frame depth render passes) */}
         <ContactShadows
+          frames={1}
           position={[0, -POUCH_HEIGHT / 2 - 0.06, 0]}
           opacity={0.35}
           scale={5.0}

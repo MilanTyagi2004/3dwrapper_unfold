@@ -182,6 +182,7 @@ export default function LiquidHeadline({
     }
 
     const wakeUp = () => {
+      if (!isActive) return;
       if (isSleepingRef.current) {
         isSleepingRef.current = false;
         rafId.current = requestAnimationFrame(animateLoop);

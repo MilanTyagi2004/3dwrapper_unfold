@@ -167,11 +167,24 @@ export default function HeroSection() {
 
         if (isInitialMountRef.current) {
           isInitialMountRef.current = false;
+          if (!inView) {
+            muteAudio();
+            if (idleVideoRef.current && !idleVideoRef.current.paused) idleVideoRef.current.pause();
+          }
           return;
         }
 
         if (!inView) {
           muteAudio();
+          if (idleVideoRef.current && !idleVideoRef.current.paused) {
+            idleVideoRef.current.pause();
+          }
+          if (leftAwakenVideoRef.current && !leftAwakenVideoRef.current.paused) {
+            leftAwakenVideoRef.current.pause();
+          }
+          if (rightAwakenVideoRef.current && !rightAwakenVideoRef.current.paused) {
+            rightAwakenVideoRef.current.pause();
+          }
         } else {
           if (idleVideoRef.current && idleVideoRef.current.paused) idleVideoRef.current.play().catch(() => {});
           unmuteAndPlay();
@@ -215,7 +228,9 @@ export default function HeroSection() {
     let animationFrameId;
 
     const enforceSeamlessLoop = () => {
-      if (video.duration && !video.paused) {
+      if (!video || video.paused) return;
+
+      if (video.duration) {
         const timeLeft = video.duration - video.currentTime;
         
         // Idle Slow-Mo Effect: Slow down time during the loop point for cinematic feel
@@ -380,7 +395,7 @@ export default function HeroSection() {
           className={`hero__video hero__video--awaken ${awakenedSide === 'left' ? 'hero__video--active' : ''}`}
           muted={awakenedSide !== 'left' || isMuted}
           playsInline
-          preload="auto"
+          preload="none"
           onTimeUpdate={handleTimeUpdate}
         />
 
@@ -391,7 +406,7 @@ export default function HeroSection() {
           className={`hero__video hero__video--awaken ${awakenedSide === 'right' ? 'hero__video--active' : ''}`}
           muted={awakenedSide !== 'right' || isMuted}
           playsInline
-          preload="auto"
+          preload="none"
           onTimeUpdate={handleTimeUpdate}
         />
       </div>

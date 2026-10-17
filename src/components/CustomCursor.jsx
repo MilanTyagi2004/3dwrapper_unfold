@@ -58,9 +58,7 @@ export default function CustomCursor() {
       const target = e.target;
       if (
         target &&
-        (target.closest('a, button, input, select, textarea, [role="button"], .ec__card-stage, .ec__card, .hero__cta, .hero__hotspot') ||
-          window.getComputedStyle(target).cursor === 'pointer' ||
-          window.getComputedStyle(target).cursor === 'grab')
+        target.closest('a, button, input, select, textarea, [role="button"], [role="link"], label, .ec__card-stage, .ec__card, .hero__cta, .hero__hotspot, .clickable')
       ) {
         isInteractive = true;
       } else {

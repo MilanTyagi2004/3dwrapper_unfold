@@ -8,9 +8,10 @@ import LiquidHeadline from './LiquidHeadline';
 import './DemonicStrips.css';
 
 function ResponsiveCamera() {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
 
   useEffect(() => {
+    if (typeof window !== 'undefined') window.__gl = gl;
     function updateCamera() {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -139,28 +140,37 @@ const DemonicStrips = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    let playTimer = null;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          setTimeout(() => {
+        const inView = entry.isIntersecting;
+        setIsVisible(inView);
+
+        if (inView) {
+          if (playTimer) clearTimeout(playTimer);
+          playTimer = setTimeout(() => {
             if (timelineRef.current) {
               timelineRef.current.play();
             }
-          }, 1000); // Wait exactly 1 sec after arriving
-          if (sectionRef.current) {
-            observer.unobserve(sectionRef.current);
+          }, 300);
+        } else {
+          if (playTimer) clearTimeout(playTimer);
+          if (timelineRef.current) {
+            timelineRef.current.pause();
           }
         }
       },
-      { threshold: 0.3 } // Sirf tab start hoga jab 30% section screen par dikh jaye
+      { threshold: 0.15 }
     );
 
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      if (playTimer) clearTimeout(playTimer);
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -469,7 +479,7 @@ const DemonicStrips = () => {
               frameloop={isVisible ? 'always' : 'never'}
               camera={{ position: [0.14, 0, 8.6], fov: 43 }}
               gl={{ antialias: true, alpha: true, powerPreference: 'high-performance', localClippingEnabled: true }}
-              dpr={[1, typeof window !== 'undefined' && window.innerWidth <= 768 ? 1.0 : 1.5]}
+              dpr={[1, typeof window !== 'undefined' && window.innerWidth <= 768 ? 1.0 : 1.25]}
             >
               <ResponsiveCamera />
               {/* Soft, rich ambient illumination for pure matte diffuse red */}
@@ -480,7 +490,6 @@ const DemonicStrips = () => {
                 position={[4.0, 5.5, 5.0]}
                 intensity={1.05}
                 color="#fff6f0"
-                castShadow
               />
 
               {/* Soft fill light from upper left */}

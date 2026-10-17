@@ -56,11 +56,15 @@ export function CigaretteBox({ animRef }) {
     '/pouch-back.png'
   ]);
 
-  // Ensure sRGB color space & high anisotropy for ultra-sharp packaging
+  // Ensure sRGB color space & optimal anisotropy (2x on mobile, 4x on desktop)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const targetAniso = isMobile ? 2 : 4;
   [lidTexture, bodyTexture, sideTexture, sideLeftTexture, sideRightTexture, backTexture, pouchFront, pouchBack].forEach((tex) => {
-    if (tex && tex.colorSpace !== THREE.SRGBColorSpace) {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 16;
+    if (tex) {
+      if (tex.colorSpace !== THREE.SRGBColorSpace) {
+        tex.colorSpace = THREE.SRGBColorSpace;
+      }
+      tex.anisotropy = targetAniso;
       tex.needsUpdate = true;
     }
   });
@@ -70,12 +74,10 @@ export function CigaretteBox({ animRef }) {
 
   // Front Lid Material (plain red lid flap from the new dieline)
   const lidFrontMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: lidTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -84,12 +86,10 @@ export function CigaretteBox({ animRef }) {
 
   // Front Body Material (new front panel: DEMONIC FUEL wordmark)
   const bodyFrontMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: bodyTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -98,12 +98,10 @@ export function CigaretteBox({ animRef }) {
 
   // Outer Box Cardstock Material (sides, back, top, bottom)
   const boxSideMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: sideTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -112,12 +110,10 @@ export function CigaretteBox({ animRef }) {
 
   // Body side panels: left = Energy / Focus / Vegan / No Sugar, right = Peel / Place / Possessed
   const boxSideLeftMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: sideLeftTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -125,12 +121,10 @@ export function CigaretteBox({ animRef }) {
   }, [sideLeftTexture]);
 
   const boxSideRightMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: sideRightTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -138,12 +132,10 @@ export function CigaretteBox({ animRef }) {
   }, [sideRightTexture]);
 
   const boxBackMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: backTexture,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -151,12 +143,10 @@ export function CigaretteBox({ animRef }) {
   }, [backTexture]);
 
   const boxPlainRedMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       color: RED_COLOR,
-      roughness: 0.36,
+      roughness: 0.38,
       metalness: 0.02,
-      clearcoat: 0.18,
-      clearcoatRoughness: 0.35,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0
@@ -189,13 +179,10 @@ export function CigaretteBox({ animRef }) {
 
   // Sealed background pouches material — clearly matte red to match hero pouch
   const sealedFrontMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: pouchFront,
       roughness: 0.82,
       metalness: 0.0,
-      clearcoat: 0.0,
-      clearcoatRoughness: 1.0,
-      reflectivity: 0.06,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0,
@@ -204,13 +191,10 @@ export function CigaretteBox({ animRef }) {
   }, [pouchFront]);
 
   const sealedBackMat = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
+    return new THREE.MeshStandardMaterial({
       map: pouchBack,
       roughness: 0.82,
       metalness: 0.0,
-      clearcoat: 0.0,
-      clearcoatRoughness: 1.0,
-      reflectivity: 0.06,
       side: THREE.FrontSide,
       transparent: false,
       opacity: 1.0,
@@ -333,8 +317,9 @@ export function CigaretteBox({ animRef }) {
 
   return (
     <group ref={boxRootRef} position={[0, 0, 0]}>
-      {/* Soft Contact Shadow below the cigarette box */}
+      {/* Soft Contact Shadow below the cigarette box (baked to 1 frame to avoid per-frame depth render passes) */}
       <ContactShadows
+        frames={1}
         position={[0, -BODY_H - 0.05, 0]}
         opacity={0.5}
         scale={4.8}
