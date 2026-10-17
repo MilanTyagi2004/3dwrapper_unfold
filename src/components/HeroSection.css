@@ -38,13 +38,15 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  background: #030102;
+  background: transparent;
 }
 
 .hero__video--idle {
-  z-index: 1;
-  opacity: 1;
+  pointer-events: none;
+  will-change: opacity;
 }
+
+
 
 .hero__video--awaken {
   z-index: 2;

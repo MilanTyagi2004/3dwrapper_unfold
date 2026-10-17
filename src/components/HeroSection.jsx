@@ -7,9 +7,18 @@ export default function HeroSection() {
   const [isMuted, setIsMuted] = useState(true);
 
   const heroRef = useRef(null);
-  const idleVideoRef = useRef(null);
+  const idleVideoARef = useRef(null);
+  const idleVideoBRef = useRef(null);
   const leftAwakenVideoRef = useRef(null);
   const rightAwakenVideoRef = useRef(null);
+
+  const [activeIdleLayer, setActiveIdleLayer] = useState('A'); // 'A' | 'B'
+  const activeIdleLayerRef = useRef('A');
+  const isCrossfadingRef = useRef(false);
+  const [layers, setLayers] = useState({
+    A: { opacity: 1, zIndex: 1, transition: 'none' },
+    B: { opacity: 0, zIndex: 2, transition: 'opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1)' },
+  });
 
   const resetTimeoutRef = useRef(null);
   const fadeIntervalsRef = useRef([]);
@@ -20,6 +29,12 @@ export default function HeroSection() {
   const hasUserUnlockedRef = useRef(false);
   const isInitialMountRef = useRef(true);
 
+  // Helper getters for active/inactive idle videos
+  const getActiveIdleVideo = () => (activeIdleLayerRef.current === 'A' ? idleVideoARef.current : idleVideoBRef.current);
+  const getInactiveIdleVideo = () => (activeIdleLayerRef.current === 'A' ? idleVideoBRef.current : idleVideoARef.current);
+  const getAllIdleVideos = () => [idleVideoARef.current, idleVideoBRef.current].filter(Boolean);
+
+
   // Unmute and play ambient audio with volume
   const unmuteAndPlay = () => {
     fadeIntervalsRef.current.forEach(clearInterval);
@@ -28,10 +43,16 @@ export default function HeroSection() {
     isMutedRef.current = false;
     setIsMuted(false);
 
-    if (idleVideoRef.current) {
-      idleVideoRef.current.muted = awakenedSideRef.current !== null;
-      idleVideoRef.current.volume = 0.85;
-      idleVideoRef.current.play().catch(() => {});
+    const activeVid = getActiveIdleVideo();
+    const inactiveVid = getInactiveIdleVideo();
+
+    if (activeVid) {
+      activeVid.muted = awakenedSideRef.current !== null;
+      activeVid.volume = 0.85;
+      activeVid.play().catch(() => {});
+    }
+    if (inactiveVid) {
+      inactiveVid.muted = true;
     }
 
     if (leftAwakenVideoRef.current) {
@@ -55,7 +76,7 @@ export default function HeroSection() {
     const fadeSteps = 20;
     const stepTime = fadeDuration / fadeSteps;
 
-    [idleVideoRef.current, leftAwakenVideoRef.current, rightAwakenVideoRef.current].forEach(video => {
+    [idleVideoARef.current, idleVideoBRef.current, leftAwakenVideoRef.current, rightAwakenVideoRef.current].forEach(video => {
       if (video && !video.muted && video.volume > 0) {
         const startVolume = video.volume;
         const volumeStep = startVolume / fadeSteps;
@@ -89,18 +110,28 @@ export default function HeroSection() {
   useEffect(() => {
     awakenedSideRef.current = awakenedSide;
     if (!isMutedRef.current && isInViewRef.current) {
-      if (idleVideoRef.current) idleVideoRef.current.muted = awakenedSide !== null;
+      const activeVid = getActiveIdleVideo();
+      const inactiveVid = getInactiveIdleVideo();
+      if (activeVid) activeVid.muted = awakenedSide !== null;
+      if (inactiveVid) inactiveVid.muted = true;
+
       if (leftAwakenVideoRef.current) leftAwakenVideoRef.current.muted = awakenedSide !== 'left';
       if (rightAwakenVideoRef.current) rightAwakenVideoRef.current.muted = awakenedSide !== 'right';
     }
   }, [awakenedSide]);
 
   useEffect(() => {
-    // 1. GUARANTEED IMMEDIATE AUTOPLAY:
-    if (idleVideoRef.current) {
-      idleVideoRef.current.defaultMuted = true;
-      idleVideoRef.current.muted = true;
-      idleVideoRef.current.play().catch(() => {});
+    // 1. GUARANTEED IMMEDIATE AUTOPLAY (Layer A starts immediately):
+    if (idleVideoARef.current) {
+      idleVideoARef.current.defaultMuted = true;
+      idleVideoARef.current.muted = true;
+      idleVideoARef.current.play().catch(() => {});
+    }
+
+    if (idleVideoBRef.current) {
+      idleVideoBRef.current.defaultMuted = true;
+      idleVideoBRef.current.muted = true;
+      idleVideoBRef.current.currentTime = 0;
     }
 
     if (leftAwakenVideoRef.current) {
@@ -117,19 +148,20 @@ export default function HeroSection() {
 
     // 2. Safe check: Test if browser permits unmuted audio on cold load
     const testColdAutoplay = () => {
-      if (!idleVideoRef.current) return;
-      idleVideoRef.current.muted = false;
-      idleVideoRef.current.volume = 0.85;
-      const p = idleVideoRef.current.play();
+      const activeVid = idleVideoARef.current;
+      if (!activeVid) return;
+      activeVid.muted = false;
+      activeVid.volume = 0.85;
+      const p = activeVid.play();
       if (p !== undefined) {
         p.then(() => {
           hasUserUnlockedRef.current = true;
           isMutedRef.current = false;
           setIsMuted(false);
         }).catch(() => {
-          if (idleVideoRef.current) {
-            idleVideoRef.current.muted = true;
-            idleVideoRef.current.play().catch(() => {});
+          if (activeVid) {
+            activeVid.muted = true;
+            activeVid.play().catch(() => {});
           }
           isMutedRef.current = true;
           setIsMuted(true);
@@ -137,7 +169,7 @@ export default function HeroSection() {
       }
     };
 
-    const idleEl = idleVideoRef.current;
+    const idleEl = idleVideoARef.current;
     if (idleEl) {
       idleEl.addEventListener('playing', testColdAutoplay, { once: true });
     }
@@ -169,16 +201,14 @@ export default function HeroSection() {
           isInitialMountRef.current = false;
           if (!inView) {
             muteAudio();
-            if (idleVideoRef.current && !idleVideoRef.current.paused) idleVideoRef.current.pause();
+            getAllIdleVideos().forEach(v => { if (!v.paused) v.pause(); });
           }
           return;
         }
 
         if (!inView) {
           muteAudio();
-          if (idleVideoRef.current && !idleVideoRef.current.paused) {
-            idleVideoRef.current.pause();
-          }
+          getAllIdleVideos().forEach(v => { if (!v.paused) v.pause(); });
           if (leftAwakenVideoRef.current && !leftAwakenVideoRef.current.paused) {
             leftAwakenVideoRef.current.pause();
           }
@@ -186,7 +216,8 @@ export default function HeroSection() {
             rightAwakenVideoRef.current.pause();
           }
         } else {
-          if (idleVideoRef.current && idleVideoRef.current.paused) idleVideoRef.current.play().catch(() => {});
+          const activeVid = getActiveIdleVideo();
+          if (activeVid && activeVid.paused) activeVid.play().catch(() => {});
           unmuteAndPlay();
         }
       },
@@ -220,55 +251,98 @@ export default function HeroSection() {
     };
   }, []);
 
-  // Infinite seamless loop fix
+  // Synchronize active layer ref
   useEffect(() => {
-    const video = idleVideoRef.current;
-    if (!video) return;
+    activeIdleLayerRef.current = activeIdleLayer;
+  }, [activeIdleLayer]);
 
+  // Dual-Video Seamless Zero-Dip Stacking Engine
+  // One video remains 100% solid while incoming video dissolves in ON TOP over 1.4s
+  useEffect(() => {
     let animationFrameId;
+    const CROSSFADE_TRIGGER_TIME = 1.9; // Trigger 1.9s before video ends (at ~8.1s)
+    const FADE_DURATION_MS = 1400; // Ultra-smooth 1.4s cinematic melt
 
-    const enforceSeamlessLoop = () => {
-      if (!video || video.paused) return;
+    const runSeamlessCrossfadeLoop = () => {
+      const isLayerA = activeIdleLayerRef.current === 'A';
+      const activeVid = isLayerA ? idleVideoARef.current : idleVideoBRef.current;
+      const nextVid = isLayerA ? idleVideoBRef.current : idleVideoARef.current;
 
-      if (video.duration) {
-        const timeLeft = video.duration - video.currentTime;
-        
-        // Idle Slow-Mo Effect: Slow down time during the loop point for cinematic feel
-        if (timeLeft <= 0.9) {
-          if (video.playbackRate !== 0.5) video.playbackRate = 0.5;
-        } else if (video.currentTime <= 0.8) {
-          if (video.playbackRate !== 0.6) video.playbackRate = 0.6;
-        } else {
-          if (video.playbackRate !== 1.0) video.playbackRate = 1.0;
-        }
+      if (activeVid && !activeVid.paused && activeVid.duration && !isCrossfadingRef.current && nextVid) {
+        const timeLeft = activeVid.duration - activeVid.currentTime;
 
-        // Skip the last 0.85 seconds to bypass the baked-in black frames from the video cutter
-        if (timeLeft <= 0.85) {
-          video.currentTime = 0.05; // instantly snap back to start
+        if (timeLeft <= CROSSFADE_TRIGGER_TIME) {
+          isCrossfadingRef.current = true;
+          const nextLayerKey = isLayerA ? 'B' : 'A';
+          const activeLayerKey = isLayerA ? 'A' : 'B';
+
+          // 1. Start incoming video at 0.1 to guarantee a fully decoded active frame
+          nextVid.currentTime = 0.1;
+          nextVid.playbackRate = 1.0;
+
+          if (!isMutedRef.current && awakenedSideRef.current === null) {
+            nextVid.muted = false;
+            nextVid.volume = 0;
+          } else {
+            nextVid.muted = true;
+          }
+
+          const playPromise = nextVid.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {});
+          }
+
+          // 2. Pre-roll 50ms before initiating visual dissolve, so incoming video is actively rolling frames
+          setTimeout(() => {
+            // STACK FADE: Next video dissolves smoothly in on TOP (zIndex: 2), while active video stays 100% solid (zIndex: 1)
+            setLayers({
+              [activeLayerKey]: { opacity: 1, zIndex: 1, transition: 'none' },
+              [nextLayerKey]: { opacity: 1, zIndex: 2, transition: 'opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1)' },
+            });
+
+            // Audio crossfade
+            if (!isMutedRef.current && awakenedSideRef.current === null) {
+              const steps = 15;
+              const stepTime = FADE_DURATION_MS / steps;
+              let currentStep = 0;
+              const audioInterval = setInterval(() => {
+                currentStep++;
+                const progress = Math.min(1, currentStep / steps);
+                if (activeVid) activeVid.volume = Math.max(0, 0.85 * (1 - progress));
+                if (nextVid) nextVid.volume = Math.min(0.85, 0.85 * progress);
+                if (currentStep >= steps) clearInterval(audioInterval);
+              }, stepTime);
+            }
+
+            // Once incoming video has completely covered the outgoing video, pause & clean up
+            setTimeout(() => {
+              if (activeVid) {
+                activeVid.pause();
+                activeVid.currentTime = 0.1;
+                activeVid.muted = true;
+                activeVid.volume = 0;
+              }
+
+              // Swap roles for next turn
+              setLayers({
+                [nextLayerKey]: { opacity: 1, zIndex: 1, transition: 'none' },
+                [activeLayerKey]: { opacity: 0, zIndex: 2, transition: 'none' },
+              });
+
+              activeIdleLayerRef.current = nextLayerKey;
+              setActiveIdleLayer(nextLayerKey);
+              isCrossfadingRef.current = false;
+            }, FADE_DURATION_MS + 60);
+          }, 50);
         }
       }
-      animationFrameId = requestAnimationFrame(enforceSeamlessLoop);
+
+      animationFrameId = requestAnimationFrame(runSeamlessCrossfadeLoop);
     };
 
-    const handlePlay = () => {
-      cancelAnimationFrame(animationFrameId);
-      enforceSeamlessLoop();
-    };
-
-    const handlePause = () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-
-    if (!video.paused) {
-      enforceSeamlessLoop();
-    }
+    animationFrameId = requestAnimationFrame(runSeamlessCrossfadeLoop);
 
     return () => {
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -284,12 +358,11 @@ export default function HeroSection() {
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
 
-    // Mute idle audio and apply SLOW-MO to idle video instead of freezing it.
-    // This creates a buttery cinematic crossfade!
-    if (idleVideoRef.current) {
-      idleVideoRef.current.muted = true;
-      idleVideoRef.current.playbackRate = 0.4; // Slow motion during fade
-    }
+    // Mute idle audio and apply slow-mo to idle videos during worker awakening
+    getAllIdleVideos().forEach(v => {
+      v.muted = true;
+      v.playbackRate = 0.4;
+    });
 
     const targetVideo = side === 'left' ? leftAwakenVideoRef.current : rightAwakenVideoRef.current;
     
@@ -308,7 +381,9 @@ export default function HeroSection() {
           // Restore normal speed after the crossfade completes
           setTimeout(() => {
             if (targetVideo) targetVideo.playbackRate = 1.0;
-            if (idleVideoRef.current) idleVideoRef.current.playbackRate = 1.0;
+            getAllIdleVideos().forEach(v => {
+              v.playbackRate = 1.0;
+            });
           }, 450);
         })
         .catch(() => {
@@ -339,9 +414,10 @@ export default function HeroSection() {
       rightAwakenVideoRef.current.playbackRate = 0.5;
     }
     
-    if (idleVideoRef.current) {
-      idleVideoRef.current.muted = isMutedRef.current;
-      idleVideoRef.current.playbackRate = 0.6; // Smoothly ease back into idle
+    const activeVid = getActiveIdleVideo();
+    if (activeVid) {
+      activeVid.muted = isMutedRef.current;
+      activeVid.playbackRate = 0.6; // Smoothly ease back into idle
     }
 
     if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
@@ -354,9 +430,9 @@ export default function HeroSection() {
         rightAwakenVideoRef.current.currentTime = 0;
         rightAwakenVideoRef.current.playbackRate = 1.0;
       }
-      if (idleVideoRef.current) {
-        idleVideoRef.current.playbackRate = 1.0;
-      }
+      getAllIdleVideos().forEach(v => {
+        v.playbackRate = 1.0;
+      });
     }, 450);
   };
 
@@ -375,14 +451,32 @@ export default function HeroSection() {
 
   return (
     <section className="hero-section" id="hero" ref={heroRef}>
-      {/* Background Video */}
+      {/* Background Video (Seamless Dual-Buffer Infinite Crossfade) */}
       <div className="hero__video-container">
         <video
-          ref={idleVideoRef}
+          ref={idleVideoARef}
           src="/assets/brand/hero_bg_video.mp4"
           className="hero__video hero__video--idle"
+          style={{
+            opacity: layers.A.opacity,
+            zIndex: layers.A.zIndex,
+            transition: layers.A.transition,
+          }}
           autoPlay
-          loop
+          muted
+          playsInline
+          preload="auto"
+        />
+
+        <video
+          ref={idleVideoBRef}
+          src="/assets/brand/hero_bg_video.mp4"
+          className="hero__video hero__video--idle"
+          style={{
+            opacity: layers.B.opacity,
+            zIndex: layers.B.zIndex,
+            transition: layers.B.transition,
+          }}
           muted
           playsInline
           preload="auto"
