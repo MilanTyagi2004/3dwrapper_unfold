@@ -7,13 +7,28 @@ export default function CustomCursor() {
   const trailRef = useRef(null);
 
   useEffect(() => {
-    // Disable completely on mobile / touch devices
-    const isTouch =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    // Only disable completely on pure touch/mobile devices without pointer hover capability
+    const isPureTouch =
+      window.matchMedia &&
+      window.matchMedia('(pointer: coarse) and (hover: none)').matches;
 
-    if (isTouch) return;
+    if (isPureTouch) return;
+
+    let hasCustomCursorClass = false;
+
+    const enableCustomCursorClass = () => {
+      if (!hasCustomCursorClass) {
+        document.documentElement.classList.add('has-custom-cursor');
+        hasCustomCursorClass = true;
+      }
+    };
+
+    const disableCustomCursorClass = () => {
+      if (hasCustomCursorClass) {
+        document.documentElement.classList.remove('has-custom-cursor');
+        hasCustomCursorClass = false;
+      }
+    };
 
     let mouseX = -100;
     let mouseY = -100;
@@ -33,6 +48,7 @@ export default function CustomCursor() {
     let isVisible = false;
     let isInitialized = false;
     let isInteractive = false;
+    let prevInteractive = false;
 
     let rafId = null;
 
@@ -53,11 +69,13 @@ export default function CustomCursor() {
       }
 
       isVisible = true;
+      enableCustomCursorClass();
 
       // Check if hovering over interactive elements for reactive cursor swell
       const target = e.target;
       if (
         target &&
+        typeof target.closest === 'function' &&
         target.closest('a, button, input, select, textarea, [role="button"], [role="link"], label, .ec__card-stage, .ec__card, .hero__cta, .hero__hotspot, .clickable')
       ) {
         isInteractive = true;
@@ -68,15 +86,25 @@ export default function CustomCursor() {
 
     const onMouseEnter = () => {
       isVisible = true;
+      if (isInitialized) {
+        enableCustomCursorClass();
+      }
     };
 
     const onMouseLeave = () => {
       isVisible = false;
+      disableCustomCursorClass();
+    };
+
+    const onWindowBlur = () => {
+      isVisible = false;
+      disableCustomCursorClass();
     };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     document.documentElement.addEventListener('mouseenter', onMouseEnter);
     document.documentElement.addEventListener('mouseleave', onMouseLeave);
+    window.addEventListener('blur', onWindowBlur);
 
     // Inertia physics factors
     const LERP_DOT = 0.88;   // Immediate follow for crisp center indicator
@@ -123,10 +151,13 @@ export default function CustomCursor() {
         if (ringRef.current) {
           ringRef.current.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) scale(${ringScale})`;
           ringRef.current.style.opacity = `${ringOpacity}`;
-          if (isInteractive) {
-            ringRef.current.classList.add('custom-cursor__ring--interactive');
-          } else {
-            ringRef.current.classList.remove('custom-cursor__ring--interactive');
+          if (isInteractive !== prevInteractive) {
+            if (isInteractive) {
+              ringRef.current.classList.add('custom-cursor__ring--interactive');
+            } else {
+              ringRef.current.classList.remove('custom-cursor__ring--interactive');
+            }
+            prevInteractive = isInteractive;
           }
         }
 
@@ -146,6 +177,8 @@ export default function CustomCursor() {
       window.removeEventListener('mousemove', onMouseMove);
       document.documentElement.removeEventListener('mouseenter', onMouseEnter);
       document.documentElement.removeEventListener('mouseleave', onMouseLeave);
+      window.removeEventListener('blur', onWindowBlur);
+      disableCustomCursorClass();
     };
   }, []);
 

@@ -80,17 +80,18 @@
   transition: opacity 0.25s ease;
 }
 
-/* Hide default cursor completely across ALL elements on desktop */
+/* Hide default cursor ONLY when custom cursor is confirmed active and running */
 @media (pointer: fine) and (hover: hover) {
-  *,
-  *::before,
-  *::after {
+  html.has-custom-cursor,
+  html.has-custom-cursor *,
+  html.has-custom-cursor *::before,
+  html.has-custom-cursor *::after {
     cursor: none !important;
   }
 }
 
-/* Disable completely on mobile / touch devices */
-@media (pointer: coarse), (hover: none) {
+/* Disable completely on pure touch devices (phones/tablets without hover) */
+@media (pointer: coarse) and (hover: none) {
   .custom-cursor-root {
     display: none !important;
   }
