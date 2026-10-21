@@ -380,7 +380,7 @@ export function PouchModel({ animProps, animRef }) {
       opacity: 1.0,
       depthWrite: true
     });
-  }, [backTexture, rawBackTexture, foilBumpTexture]);
+  }, [backTexture, rawBackTexture, foilBumpTexture, targetAniso]);
 
   // Inner Silver Foil Cavity Bed
   const innerFoilMaterial = useMemo(() => {
