@@ -7,7 +7,7 @@
  * - Framer Motion (framer-motion)
  * - QR Code Canvas (qrcode.react via QRCodeCanvas)
  * - Typography: Meursault VF (brand headline/logo) & Barlow Condensed (editorial tech font) & Amador Font (decorative)
- * - High-res Canvas 2D Exporters: 4X Ultra-HD Card (2080x1312) & 9:16 Instagram Story (1080x1920)
+ * - High-res Canvas 2D Exporters: 4X Ultra-HD Card (2080x1312)
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
@@ -228,8 +228,6 @@ export default function EmailCollect() {
     if (phase !== 'card' || !tiltRef.current) return
 
     const stageEl = tiltRef.current
-    let isHovering = false
-
     function onMouseMove(e) {
       const rect = stageEl.getBoundingClientRect()
       const nx = (e.clientX - rect.left) / rect.width
@@ -240,7 +238,6 @@ export default function EmailCollect() {
       mouse.current.y = (ny - 0.5) * -22
       mouse.current.px = Math.round(nx * 100)
       mouse.current.py = Math.round(ny * 100)
-      isHovering = true
     }
 
     function onMouseLeave() {
@@ -248,7 +245,6 @@ export default function EmailCollect() {
       mouse.current.y = 0
       mouse.current.px = 50
       mouse.current.py = 50
-      isHovering = false
     }
 
     function tick() {
@@ -310,7 +306,6 @@ export default function EmailCollect() {
     roundRect(ctx, 0, 0, cw, ch, 18 * s)
     ctx.clip()
 
-    let bgLoaded = false
     try {
       const bgImg = new Image()
       bgImg.crossOrigin = 'anonymous'
@@ -321,7 +316,6 @@ export default function EmailCollect() {
         setTimeout(rej, 1500)
       })
       ctx.drawImage(bgImg, 0, 0, cw, ch)
-      bgLoaded = true
     } catch {
       // High-grade fallback: Stealth black brushed titanium gradient
       const bgGrad = ctx.createLinearGradient(0, 0, cw * 1.15, ch * 1.15)
@@ -592,146 +586,7 @@ export default function EmailCollect() {
     }
   }, [memberId, renderCardToCanvas])
 
-  /* ── Export 2: Instagram Story Vertical Asset (1080 × 1920 px) ── */
-  const downloadStory = useCallback(async () => {
-    if (!canvasCardRef.current) return
 
-    const card = canvasCardRef.current
-    const sw = 1080
-    const sh = 1920
-
-    const canvas = document.createElement('canvas')
-    canvas.width = sw
-    canvas.height = sh
-    const ctx = canvas.getContext('2d')
-
-    // 1. Deep Obsidian Velvet Studio Base
-    ctx.fillStyle = '#08080a'
-    ctx.fillRect(0, 0, sw, sh)
-
-    // 2. Dramatic Overhead Studio Spotlight Cone
-    const spotGlow = ctx.createRadialGradient(sw / 2, 280, 0, sw / 2, 750, 1000)
-    spotGlow.addColorStop(0, 'rgba(85, 90, 105, 0.32)')
-    spotGlow.addColorStop(0.35, 'rgba(30, 32, 40, 0.16)')
-    spotGlow.addColorStop(0.7, 'rgba(234, 9, 23, 0.06)')
-    spotGlow.addColorStop(1, 'transparent')
-    ctx.fillStyle = spotGlow
-    ctx.fillRect(0, 0, sw, sh)
-
-    // 3. Cinematic Film Grain Texture
-    ctx.save()
-    ctx.globalAlpha = 0.035
-    for (let i = 0; i < 10000; i++) {
-      const gx = Math.random() * sw
-      const gy = Math.random() * sh
-      ctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000'
-      ctx.fillRect(gx, gy, 1.2, 1.2)
-    }
-    ctx.restore()
-
-    // 4. Top Branding Section
-    ctx.save()
-    ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(234, 9, 23, 0.9)'
-    ctx.font = '700 16px "Barlow Condensed"'
-    ctx.letterSpacing = '8px'
-    ctx.fillText('FOUNDER PASS ALLOCATION', sw / 2, 420)
-
-    const lineGrad = ctx.createLinearGradient(sw * 0.28, 0, sw * 0.72, 0)
-    lineGrad.addColorStop(0, 'transparent')
-    lineGrad.addColorStop(0.5, 'rgba(234, 9, 23, 0.75)')
-    lineGrad.addColorStop(1, 'transparent')
-    ctx.fillStyle = lineGrad
-    ctx.fillRect(sw * 0.28, 442, sw * 0.44, 1.5)
-    ctx.restore()
-
-    // 5. Render Framed 3D Card Presentation
-    const cardW = 520
-    const cardH = 328
-    const cardScale = 1.75
-    const cardCanvas = document.createElement('canvas')
-    cardCanvas.width = cardW * 4
-    cardCanvas.height = cardH * 4
-    const cardCtx = cardCanvas.getContext('2d')
-
-    await renderCardToCanvas(cardCtx, cardW, cardH, card, 4)
-
-    const renderW = cardW * cardScale
-    const renderH = cardH * cardScale
-    const cardX = (sw - renderW) / 2
-    const cardY = 510
-
-    // Tray Cutout Deep Shadow
-    ctx.save()
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)'
-    ctx.shadowBlur = 90
-    ctx.shadowOffsetY = 36
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'
-    roundRect(ctx, cardX, cardY, renderW, renderH, 18 * cardScale)
-    ctx.fill()
-    ctx.restore()
-
-    // Draw High-Res Card
-    ctx.drawImage(cardCanvas, cardX, cardY, renderW, renderH)
-
-    // 6. Bottom Branding Section
-    const bottomLineY = cardY + renderH + 65
-    ctx.fillStyle = lineGrad
-    ctx.fillRect(sw * 0.28, bottomLineY, sw * 0.44, 1.5)
-
-    ctx.save()
-    ctx.textAlign = 'center'
-    const brandGrad = ctx.createLinearGradient(0, bottomLineY + 45, 0, bottomLineY + 95)
-    brandGrad.addColorStop(0, '#ffffff')
-    brandGrad.addColorStop(0.6, '#d0d4de')
-    brandGrad.addColorStop(1, '#8e95a2')
-    ctx.fillStyle = brandGrad
-    ctx.font = '700 46px "Meursault VF"'
-    ctx.letterSpacing = '12px'
-    ctx.fillText('DEMONIC FUEL', sw / 2, bottomLineY + 85)
-
-    ctx.fillStyle = 'rgba(234, 9, 23, 0.9)'
-    ctx.font = '700 15px "Barlow Condensed"'
-    ctx.letterSpacing = '8px'
-    ctx.fillText('FOR THE OBSESSED', sw / 2, bottomLineY + 125)
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-    ctx.font = '600 13px "Barlow Condensed"'
-    ctx.letterSpacing = '6px'
-    ctx.fillText('DEMONICFUEL.COM', sw / 2, bottomLineY + 165)
-    ctx.restore()
-
-    // Trigger Download
-    const dataUrl = canvas.toDataURL('image/png')
-    const filename = `demonic-fuel-story-${memberId || 'founder'}.png`
-
-    if (navigator.canShare) {
-      try {
-        const res = await fetch(dataUrl)
-        const blob = await res.blob()
-        const file = new File([blob], filename, { type: 'image/png' })
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: 'Demonic Fuel Founder Story'
-          })
-          return
-        }
-      } catch {
-        /* share cancelled */
-      }
-    }
-
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-    if (isMobile) {
-      setFallbackModalImg(dataUrl)
-    } else {
-      const link = document.createElement('a')
-      link.download = filename
-      link.href = dataUrl
-      link.click()
-    }
-  }, [memberId, renderCardToCanvas])
 
   return (
     <section id="founder-pass" className="ec">
@@ -1093,10 +948,25 @@ export default function EmailCollect() {
                 src={fallbackModalImg} 
                 alt="Generated Pass" 
                 style={{
-                  maxWidth: '100%', maxHeight: '75vh',
-                  borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)'
+                  maxWidth: '100%', maxHeight: '68vh',
+                  borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+                  WebkitTouchCallout: 'default',
+                  WebkitUserSelect: 'auto',
+                  userSelect: 'auto',
+                  pointerEvents: 'auto'
                 }}
               />
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.65)',
+                fontFamily: '"Barlow Condensed", sans-serif',
+                fontSize: '13px',
+                letterSpacing: '1.5px',
+                marginTop: '16px',
+                textAlign: 'center',
+                textTransform: 'uppercase'
+              }}>
+                Hold image to save to Photos • Or tap ••• to Open in Safari
+              </p>
             </div>
           </motion.div>
         )}

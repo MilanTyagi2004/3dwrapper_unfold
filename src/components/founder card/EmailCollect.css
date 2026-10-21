@@ -1076,56 +1076,7 @@
   transform: translateY(0);
 }
 
-/* Instagram Story Button */
-.ec__story-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: clamp(14px, 2vw, 16px) clamp(18px, 2.5vw, 28px);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-  color: var(--ec-cream);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-family: var(--ec-font-tech);
-  font-size: clamp(0.78rem, 1.8vw, 0.85rem);
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: var(--ec-transition);
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
 
-.ec__story-btn:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.45),
-    0 0 25px rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
-}
-
-.ec__story-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  position: relative;
-}
-
-.ec__story-icon::after {
-  content: '↑';
-  font-size: 0.72rem;
-  font-weight: 800;
-}
 
 /* 300 DPI QR Mockup Button */
 .ec__mockup-btn {
