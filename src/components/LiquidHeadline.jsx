@@ -68,18 +68,19 @@ function getLiquidFalloff(dist) {
   }
 }
 
-export default function LiquidHeadline({
+function LiquidHeadline({
   headline,
   isActive = true,
   className = 'editorial-headline',
   as: Tag = 'h3'
 }) {
   const containerRef = useRef(null);
+  const containerRectRef = useRef(null);
   const charRefs = useRef([]);
   const localCoordsRef = useRef([]); // Cached relative center of each character
   const physicsRef = useRef([]);     // Current state: { x, y, vx, vy, rot, vrot, scale, vscale }
 
-  const isSleepingRef = useRef(false);
+  const isSleepingRef = useRef(true);
   const rafId = useRef(null);
 
   // Pre-parse headline into lines, words, and characters with continuous global indexing
@@ -114,6 +115,7 @@ export default function LiquidHeadline({
       // Element is hidden or not laid out yet
       return;
     }
+    containerRectRef.current = containerRect;
 
     localCoordsRef.current = [];
     charRefs.current.forEach((el, idx) => {
@@ -170,7 +172,7 @@ export default function LiquidHeadline({
     const t3 = setTimeout(measureCoords, 600);
 
     if (document.fonts) {
-      document.fonts.ready.then(measureCoords).catch(() => {});
+      document.fonts.ready.then(measureCoords).catch(() => { });
     }
 
     let ro = null;
@@ -189,12 +191,38 @@ export default function LiquidHeadline({
       }
     };
 
+    // Only wake up physics loop if cursor is within headline reach
     const handleMouseMove = () => {
-      wakeUp();
+      if (!isActive) return;
+      let rect = containerRectRef.current;
+      if (!rect && containerRef.current) {
+        rect = containerRef.current.getBoundingClientRect();
+        containerRectRef.current = rect;
+      }
+      if (!rect) return;
+
+      const cursorX = globalMouse.x;
+      const cursorY = globalMouse.y;
+      const inReach =
+        cursorX >= rect.left - RADIUS - 40 &&
+        cursorX <= rect.right + RADIUS + 40 &&
+        cursorY >= rect.top - RADIUS - 40 &&
+        cursorY <= rect.bottom + RADIUS + 40;
+
+      if (inReach) {
+        wakeUp();
+      }
+    };
+
+    const handleScroll = () => {
+      if (containerRef.current) {
+        containerRectRef.current = containerRef.current.getBoundingClientRect();
+      }
+      handleMouseMove();
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('scroll', wakeUp, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', measureCoords, { passive: true });
 
     // Physics constants
@@ -207,7 +235,12 @@ export default function LiquidHeadline({
         return;
       }
 
-      const containerRect = containerRef.current.getBoundingClientRect();
+      // Use cached containerRect to eliminate forced synchronous layout reflows
+      let containerRect = containerRectRef.current;
+      if (!containerRect) {
+        containerRect = containerRef.current.getBoundingClientRect();
+        containerRectRef.current = containerRect;
+      }
       const cursorX = globalMouse.x;
       const cursorY = globalMouse.y;
       const isCursorActive = globalMouse.active;
@@ -338,7 +371,7 @@ export default function LiquidHeadline({
       if (ro) ro.disconnect();
       if (rafId.current) cancelAnimationFrame(rafId.current);
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('scroll', wakeUp);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', measureCoords);
       charRefs.current.forEach((el) => {
         if (el) el.style.transform = '';
@@ -375,3 +408,5 @@ export default function LiquidHeadline({
     </Tag>
   );
 }
+
+export default React.memo(LiquidHeadline);
