@@ -11,12 +11,7 @@
    - Structured so correct font files can be placed in /fonts/ or /resource/Font/ */
 @font-face {
   font-family: 'Amador Font';
-  src: url('/fonts/Amador.woff2') format('woff2'),
-       url('/fonts/Amador.woff') format('woff'),
-       url('/fonts/Amador.ttf') format('truetype'),
-       url('/fonts/Amador.otf') format('opentype'),
-       url('../resource/Font/Amador.ttf') format('truetype'),
-       local('Amador Font'),
+  src: local('Amador Font'),
        local('Amador');
   font-weight: normal;
   font-style: normal;
@@ -26,17 +21,12 @@
 /* 2. MEURSAULT VF
    - Primary display and brand font.
    - Main logo, hero headline, major headings, key statements.
-   - Preserves high-contrast serif visual character.
-   - Structured so correct font files can be placed in /fonts/ or /resource/Font/ */
+   - Falls back gracefully to Gloucester MT Extra Condensed (provided in assets) and serif */
 @font-face {
   font-family: 'Meursault VF';
-  src: url('/fonts/MeursaultVF.woff2') format('woff2'),
-       url('/fonts/MeursaultVF.woff') format('woff'),
-       url('/fonts/MeursaultVF.ttf') format('truetype'),
-       url('/fonts/MeursaultVF.otf') format('opentype'),
-       url('../resource/Font/MeursaultVF.ttf') format('truetype'),
-       local('Meursault VF'),
-       local('Meursault');
+  src: local('Meursault VF'),
+       local('Meursault'),
+       url('/assets/brand/Gloucester-MT-Extra-Condensed.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -47,8 +37,7 @@
    - Loaded from project font file and Google Fonts */
 @font-face {
   font-family: 'Barlow Condensed';
-  src: url('/fonts/BarlowCondensed-SemiBold.ttf') format('truetype'),
-       url('../resource/Font/BarlowCondensed-SemiBold.ttf') format('truetype');
+  src: url('/fonts/BarlowCondensed-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
