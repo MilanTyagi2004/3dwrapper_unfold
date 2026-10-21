@@ -218,7 +218,9 @@ export default function HeroSection() {
         } else {
           const activeVid = getActiveIdleVideo();
           if (activeVid && activeVid.paused) activeVid.play().catch(() => {});
-          unmuteAndPlay();
+          if (hasUserUnlockedRef.current && !isMutedRef.current) {
+            unmuteAndPlay();
+          }
         }
       },
       { threshold: [0, 0.05, 0.2] }
