@@ -1,5 +1,4 @@
-// ```jsx
-import React, { useState } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import LiquidHeadline from './LiquidHeadline';
 import './FaqSection.css';
 
@@ -47,12 +46,102 @@ const faqs = [
   },
 ];
 
+const FaqItem = memo(function FaqItem({ faq, isOpen, onToggle }) {
+  const answerId = `faq-answer-${faq.id}`;
+  const contentRef = React.useRef(null);
+  const [contentHeight, setContentHeight] = React.useState(0);
+
+  const handleToggle = () => {
+    if (!isOpen && contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+    onToggle(faq.id);
+  };
+
+  React.useEffect(() => {
+    if (isOpen && contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [isOpen]);
+
+  return (
+    <div className={`faq__item ${isOpen ? 'is-open' : ''}`}>
+      <button
+        type="button"
+        className="faq__question-btn"
+        onClick={handleToggle}
+        aria-expanded={isOpen}
+        aria-controls={answerId}
+      >
+        <span className="faq__q-text-group">
+          <span className="faq__number">
+            {faq.id} //
+          </span>
+
+          <span className="faq__question">
+            {faq.question}
+          </span>
+        </span>
+
+        <span className="faq__icon-wrapper" aria-hidden="true">
+          <span className={`faq__icon ${isOpen ? 'is-open' : ''}`}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                className="faq__icon-h"
+                d="M5 12H19"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+
+              <path
+                className="faq__icon-v"
+                d="M12 5V19"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </span>
+      </button>
+
+      <div
+        id={answerId}
+        className="faq__answer-wrapper"
+        aria-hidden={!isOpen}
+        role="region"
+        inert={!isOpen ? '' : undefined}
+        style={{
+          height: isOpen ? (contentHeight ? `${contentHeight}px` : 'auto') : 0,
+        }}
+      >
+        <div ref={contentRef} className="faq__answer-inner">
+          <div className="faq__answer">
+            {faq.answer.split('\n').map((line, index) => (
+              <p key={`${faq.id}-${index}`}>{line}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function FaqSection() {
   const [openId, setOpenId] = useState(null);
 
-  const toggleFaq = (id) => {
+  const toggleFaq = useCallback((id) => {
     setOpenId((currentId) => (currentId === id ? null : id));
-  };
+  }, []);
 
   return (
     <section className="faq-section" id="faq">
@@ -70,84 +159,14 @@ export default function FaqSection() {
       </div>
 
       <div className="faq__list">
-        {faqs.map((faq) => {
-          const isOpen = openId === faq.id;
-          const answerId = `faq-answer-${faq.id}`;
-
-          return (
-            <div
-              key={faq.id}
-              className={`faq__item ${isOpen ? 'is-open' : ''}`}
-            >
-              <button
-                type="button"
-                className="faq__question-btn"
-                onClick={() => toggleFaq(faq.id)}
-                aria-expanded={isOpen}
-                aria-controls={answerId}
-              >
-                <span className="faq__q-text-group">
-                  <span className="faq__number">
-                    {faq.id} //
-                  </span>
-
-                  <span className="faq__question">
-                    {faq.question}
-                  </span>
-                </span>
-
-                <span className="faq__icon-wrapper" aria-hidden="true">
-                  <span
-                    className={`faq__icon ${isOpen ? 'is-open' : ''}`}
-                  >
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        className="faq__icon-h"
-                        d="M5 12H19"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <path
-                        className="faq__icon-v"
-                        d="M12 5V19"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </span>
-              </button>
-
-              <div
-                id={answerId}
-                className="faq__answer-wrapper"
-                aria-hidden={!isOpen}
-                role="region"
-                aria-labelledby={undefined}
-                inert={!isOpen}
-              >
-                <div className="faq__answer-inner">
-                  <div className="faq__answer">
-                    {faq.answer.split('\n').map((line, index) => (
-                      <p key={`${faq.id}-${index}`}>{line}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {faqs.map((faq) => (
+          <FaqItem
+            key={faq.id}
+            faq={faq}
+            isOpen={openId === faq.id}
+            onToggle={toggleFaq}
+          />
+        ))}
       </div>
     </section>
   );
