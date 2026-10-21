@@ -11,7 +11,8 @@ import './App.css'
 
 function isHomeRoute() {
   const path = window.location.pathname.toLowerCase()
-  return path === '/' || path === ''
+  const cleanPath = path.replace(/\/index\.html\/?$/, '').replace(/\/+$/, '')
+  return cleanPath === ''
 }
 
 function App() {
@@ -38,8 +39,8 @@ function App() {
         <DemonicStrips />
         <EmailCollect />
         <FaqSection />
-        <Footer />
       </div>
+      <Footer />
     </div>
   )
 }
