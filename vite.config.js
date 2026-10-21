@@ -42,6 +42,25 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), devApi()],
     build: {
       sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const normalized = id.replace(/\\/g, '/')
+            if (normalized.includes('/node_modules/')) {
+              if (normalized.includes('/three/') || normalized.includes('/@react-three/')) {
+                return 'three-vendor'
+              }
+              if (normalized.includes('/gsap/') || normalized.includes('/framer-motion/')) {
+                return 'motion-vendor'
+              }
+              if (normalized.includes('/react/') || normalized.includes('/react-dom/')) {
+                return 'react-vendor'
+              }
+              return 'other-vendor'
+            }
+          },
+        },
+      },
     },
   }
 })
