@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     const { data, error } = await db
       .from('founder_passes')
       .select('id, name, email, phone, member_id, tagline, created_at')
-      .ilike('email', email)
+      .eq('email', email)
       .order('created_at', { ascending: false })
       .limit(1);
 
